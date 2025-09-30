@@ -32,12 +32,12 @@ function generateHooks(e) {
   const t = e.title;
   const tag = e.tag;
   const seeds = [
-    `A caravan arrives seeking the ${t}. Their leader claims it belongs to their lineage. Decide who is right.`,
-    `A child in the village has dreams of the ${t}. The dreams reveal a hidden location each night.`,
-    `A Sporeborne artist offers a masterpiece if you let them study the ${t} for one hour.`,
-    `Rumor says the ${t} can silence the Choir for a day. Someone wants you to try.`,
-    `A fissure opens in the Deep Mines, echoing the pulse of the ${t}. Explore before it seals.`,
-    `A guild archivist insists the ${t} is counterfeit. Prove or disprove it in the field.`
+    `A grove-tender begs you to transplant the ${t} before a frost wave rolls across the Verdant Hollows.`,
+    `The Gilt Conservatory offers a charter if you retrieve living samples of the ${t} without bruising a single frond.`,
+    `Spore choristers swear the ${t} hums at dusk. Record its melody before the Choir Ruins collapse again.`,
+    `A caravan of night brewers covets the ${t}, but a rival syndicate posted a bounty to burn it first. Choose a side.`,
+    `Atlas mapwrights insist the ${t} migrates along ley-lines. Track its drift with the overlay before the trail fades.`,
+    `A dreamless sleeper briefly murmured the name ${t}. Discover what vision the plant shared.`
   ];
   // pick three deterministic by hash of id for stable hooks
   const h = Array.from(normalize(e.id)).reduce((a,c)=>a+c.charCodeAt(0),0);
