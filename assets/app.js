@@ -7,6 +7,7 @@ const state = {
   tag: 'All',
   explorer: null,
   explorerFrame: null,
+  variantCycle: null,
 };
 
 const MAP_ZONES = [
@@ -84,6 +85,242 @@ const MAP_ZONES = [
   }
 ];
 
+const RARITY_TABLE = [
+  {
+    key: 'common',
+    label: 'Common Strain',
+    weight: 42,
+    flavor: 'Tonight the strain settles readily along public walkways, eager to be tended.'
+  },
+  {
+    key: 'rare',
+    label: 'Rare Bloom',
+    weight: 32,
+    flavor: 'Sightings are scarce; only patient caretakers can coax the petals to unfurl.'
+  },
+  {
+    key: 'mythic',
+    label: 'Mythic Bloom',
+    weight: 18,
+    flavor: 'Legends whisper of this radiance. Its glow resurfaces when the archive is most attentive.'
+  },
+  {
+    key: 'unstable',
+    label: 'Unstable Phenotype',
+    weight: 8,
+    flavor: 'Volatile motes flicker from the specimen. Handle with patient, gloved hands.'
+  }
+];
+
+const MUTATION_TRAITS = [
+  {
+    label: 'Echo-Touched',
+    description: 'Echo-touched filaments hum with choir overtones, attracting soundkeepers within earshot.',
+    hook: 'Record the resonance before the Palace bellkeepers dampen it again.'
+  },
+  {
+    label: 'Glacier-Kissed',
+    description: 'A glacier-kissed sheen keeps the bloom cool, leaving frost prints on the soil it touches.',
+    hook: 'Ferry a shard of its chill to the Verdant Hollows cistern before dawn.'
+  },
+  {
+    label: 'Aurora-Threshed',
+    description: 'Aurora-threshed petals refract stray starlight into shimmering pollen streams.',
+    hook: 'Document the refraction angles for the skywright guild.'
+  },
+  {
+    label: 'Tide-Bound',
+    description: 'The bloom exhales brine-laced mist, pulsing in rhythm with unseen tides below the city.',
+    hook: 'Sync the mist cadence with the Tideglass Observatory to predict the next surge.'
+  }
+];
+
+const CONDITION_TRAITS = [
+  {
+    label: 'Moonshadow Veil',
+    description: 'Requires a moonshadow veil cast through mirrored basins; otherwise it withdraws into the soil.',
+    hook: 'Assemble portable mirrors to keep the veil stable during transport.'
+  },
+  {
+    label: 'Silent Watch',
+    description: 'Thrives only when bells and engines fall silent; any clamor causes petals to seal.',
+    hook: 'Broker a quiet corridor through the Carnival Quarter to escort it safely.'
+  },
+  {
+    label: 'Ember Rite',
+    description: 'Needs a steady ember rite, with low coals circling its roots to keep the colors vivid.',
+    hook: 'Secure emberleaf braids to weave around the staging crate.'
+  },
+  {
+    label: 'Brine Wake',
+    description: 'Feeds on brine wake condensation harvested from subterranean currents.',
+    hook: 'Collect fresh condensation vials from the Tideglass wardens.'
+  }
+];
+
+const QUIRK_TRAITS = [
+  {
+    label: 'Flux Spores',
+    description: 'Flux spores spill from its core, rewriting nearby moss with archival script.',
+  },
+  {
+    label: 'Lantern Heart',
+    description: 'A lantern heart pulse glows beneath the petals, brightening with each whispered story.',
+  },
+  {
+    label: 'Memory Resin',
+    description: 'Memory resin beads along the stems, storing fleeting impressions of onlookers.',
+  },
+  {
+    label: 'Skylace Tendrils',
+    description: 'Skylace tendrils float weightlessly, drifting toward strong currents of imagination.',
+  }
+];
+
+const CYCLE_THEMES = [
+  {
+    key: 'amberdrift',
+    label: 'Amberdrift Cycle',
+    description: 'Ley amber glitters through the Hollows, heightening sap resonance across the kingdom.',
+    prompt: 'Amber currents coax sweeter resins from each cooperative bloom tonight.'
+  },
+  {
+    key: 'cinderwake',
+    label: 'Cinderwake Cycle',
+    description: 'Dormant embers reignite along the Carnival routes, tinting flora with warm flares.',
+    prompt: 'Smouldering breezes encourage even shy petals to release stored illumination.'
+  },
+  {
+    key: 'tidelight',
+    label: 'Tidelight Cycle',
+    description: 'Subterranean tides surge upward, lacing the air with luminous brine.',
+    prompt: 'Aquifer pulses tug roots sideways and lure plankton motes to every bloom.'
+  },
+  {
+    key: 'silencebloom',
+    label: 'Silence Bloom Cycle',
+    description: 'Palace bells fall mute; flora answer with rare, still attention.',
+    prompt: 'In the hush, spores weave new memory threads for careful listeners to follow.'
+  },
+  {
+    key: 'auroral',
+    label: 'Auroral Scatter Cycle',
+    description: 'Skybreak storms drop prismatic dust that refracts through canopy and stone alike.',
+    prompt: 'Prismatic scatter rewrites pigments, bending light to hint at forgotten paths.'
+  }
+];
+
+function hashString(str){
+  let h = 0;
+  for(let i = 0; i < str.length; i++){
+    h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+  }
+  return h >>> 0;
+}
+
+function mulberry32(a){
+  return function(){
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function pick(list, rng){
+  if(!list.length) return null;
+  const index = Math.floor(rng() * list.length);
+  return list[Math.min(index, list.length - 1)];
+}
+
+function weightedPick(list, rng){
+  const total = list.reduce((sum, item)=> sum + item.weight, 0);
+  let r = rng() * total;
+  for(const item of list){
+    r -= item.weight;
+    if(r <= 0){
+      return item;
+    }
+  }
+  return list[list.length - 1];
+}
+
+function joinSentences(...parts){
+  return parts
+    .map(part => (part || '').toString().trim())
+    .filter(Boolean)
+    .join(' ');
+}
+
+function pickCycle(seed){
+  const index = hashString(`cycle:${seed}`) % CYCLE_THEMES.length;
+  return CYCLE_THEMES[index];
+}
+
+function buildVariantProfile(entry, seed, cycle){
+  const rng = mulberry32(hashString(`${entry.id}|${seed}`));
+  const rarity = weightedPick(RARITY_TABLE, rng);
+  const mutation = pick(MUTATION_TRAITS, rng);
+  const condition = pick(CONDITION_TRAITS, rng);
+  const quirk = pick(QUIRK_TRAITS, rng);
+  const description = joinSentences(
+    rarity?.flavor,
+    mutation?.description,
+    quirk?.description,
+    condition?.description,
+    cycle?.prompt
+  );
+  const hook = joinSentences(mutation?.hook, condition?.hook);
+  return {
+    rarity: rarity?.label,
+    rarityKey: rarity?.key,
+    rarityClass: rarity ? `rarity-${rarity.key}` : '',
+    mutation: mutation?.label,
+    mutationDescription: mutation?.description,
+    condition: condition?.label,
+    conditionDescription: condition?.description,
+    quirk: quirk?.label,
+    quirkDescription: quirk?.description,
+    cycleKey: cycle?.key,
+    cycleLabel: cycle?.label,
+    description,
+    hook,
+  };
+}
+
+function applyVariantProfiles(entries){
+  if(!entries?.length) return null;
+  const seed = new Date().toISOString().slice(0, 10);
+  const cycle = pickCycle(seed);
+  entries.forEach(entry => {
+    const variant = buildVariantProfile(entry, seed, cycle);
+    entry.variant = variant;
+    entry.displaySummary = joinSentences(entry.summary, variant?.description);
+  });
+  return {
+    seed,
+    label: cycle?.label,
+    description: cycle?.description,
+    prompt: cycle?.prompt,
+  };
+}
+
+function renderVariantCycle(){
+  const el = document.getElementById('variant-cycle');
+  if(!el) return;
+  if(!state.variantCycle){
+    el.textContent = 'Cycle harmonics calibrating…';
+    return;
+  }
+  const { label, description, prompt, seed } = state.variantCycle;
+  el.innerHTML = `
+    <strong>${label || 'Cycle Pending'}</strong>
+    ${description ? `<span class="note">${description}</span>` : ''}
+    ${prompt ? `<span class="note">${prompt}</span>` : ''}
+    <span class="note">Seed ${seed}</span>
+  `;
+}
+
 function renderMapZones(map){
   const activeRegions = new Set(
     state.filtered
@@ -93,12 +330,19 @@ function renderMapZones(map){
   MAP_ZONES.forEach(zone => {
     const zoneEl = document.createElement('div');
     const isActive = zone.regions.some(region => activeRegions.has(region));
-    zoneEl.className = 'map-zone' + (isActive ? ' active' : '');
+    const classes = ['map-zone'];
+    if(isActive) classes.push('active');
+    const vertical = zone.y > 55 ? 'label-above' : 'label-below';
+    classes.push(vertical);
+    zoneEl.className = classes.join(' ');
     zoneEl.style.left = `${zone.x}%`;
     zoneEl.style.top = `${zone.y}%`;
     zoneEl.style.width = `${zone.width}%`;
     zoneEl.style.height = `${(zone.height || zone.width)}%`;
-    zoneEl.innerHTML = `<strong>${zone.name}</strong>${zone.description ? `<span>${zone.description}</span>` : ''}`;
+    const label = document.createElement('div');
+    label.className = 'map-zone-label';
+    label.innerHTML = `<strong>${zone.name}</strong>${zone.description ? `<span>${zone.description}</span>` : ''}`;
+    zoneEl.appendChild(label);
     map.appendChild(zoneEl);
   });
 }
@@ -118,8 +362,11 @@ function renderMapMarkers(){
     marker.className = classes.join(' ');
     marker.style.left = `${e.location.x}%`;
     marker.style.top = `${e.location.y}%`;
-    marker.setAttribute('aria-label', `${e.title} — ${e.location.region||'Unknown region'}`);
-    marker.title = `${e.title}\n${e.location.region||'Unknown region'}`;
+    const region = e.location.region || 'Unknown region';
+    const variant = e.variant;
+    const ariaLabel = [e.title, variant?.rarity, region].filter(Boolean).join(' — ');
+    marker.setAttribute('aria-label', ariaLabel);
+    marker.title = `${e.title}${variant?.rarity ? ` (${variant.rarity})` : ''}\n${region}`;
     marker.innerHTML = '<span></span>';
     marker.addEventListener('click', ()=>openModal(e));
     map.appendChild(marker);
@@ -131,10 +378,10 @@ function renderMapMarkers(){
 
 function normalize(s) { return (s||'').toLowerCase(); }
 
+
 function generateHooks(e) {
   const hooks = [];
   const t = e.title;
-  const tag = e.tag;
   const seeds = [
     `A grove-tender begs you to transplant the ${t} before a frost wave rolls across the Verdant Hollows.`,
     `The Gilt Conservatory offers a charter if you retrieve living samples of the ${t} without bruising a single frond.`,
@@ -143,19 +390,23 @@ function generateHooks(e) {
     `Atlas mapwrights insist the ${t} migrates along ley-lines. Track its drift with the overlay before the trail fades.`,
     `A dreamless sleeper briefly murmured the name ${t}. Discover what vision the plant shared.`
   ];
+  if(e.variant?.hook){
+    hooks.push(e.variant.hook);
+  }
   // pick three deterministic by hash of id for stable hooks
   const h = Array.from(normalize(e.id)).reduce((a,c)=>a+c.charCodeAt(0),0);
   hooks.push(seeds[h % seeds.length]);
   hooks.push(seeds[(h+2) % seeds.length]);
   hooks.push(seeds[(h+4) % seeds.length]);
-  return hooks;
+  return hooks.slice(0, 4);
 }
 
 function applyFilters() {
   const q = normalize(state.q);
   const tag = state.tag;
   state.filtered = state.entries.filter(e => {
-    const matchesQ = !q || normalize(e.title).includes(q) || normalize(e.summary).includes(q);
+    const haystack = joinSentences(e.title, e.summary, e.displaySummary, e.variant?.condition, e.variant?.quirk);
+    const matchesQ = !q || normalize(haystack).includes(q);
     const matchesTag = tag === 'All' || e.tag === tag;
     return matchesQ && matchesTag;
   });
@@ -176,9 +427,21 @@ function renderGrid() {
     const card = document.createElement('article');
     const isCollected = !!state.explorer?.collected?.has(e.id);
     card.className = 'card' + (isCollected ? ' collected' : '');
-    card.innerHTML = `<h3>${e.title}</h3>
-      <p class="small">${e.summary}</p>
-      <span class="tag">${e.tag}</span>
+    const variant = e.variant;
+    const summary = e.displaySummary || e.summary;
+    const rarityBadge = variant?.rarity ? `<span class="rarity-badge ${variant?.rarityClass || ''}">${variant.rarity}</span>` : '';
+    card.innerHTML = `
+      <div class="card-header">
+        <h3>${e.title}</h3>
+        ${rarityBadge}
+      </div>
+      <p class="small">${summary}</p>
+      <div class="card-traits">
+        <span class="tag">${e.tag}</span>
+        ${variant?.condition ? `<span class="tag alt">${variant.condition}</span>` : ''}
+        ${variant?.mutation ? `<span class="tag alt">${variant.mutation}</span>` : ''}
+        ${variant?.quirk ? `<span class="tag alt subtle">${variant.quirk}</span>` : ''}
+      </div>
       ${isCollected ? '<div class="card-status">Catalogued by roaming surveyor</div>' : ''}`;
     card.addEventListener('click', ()=>openModal(e));
     frag.appendChild(card);
@@ -209,6 +472,9 @@ function openModal(e){
   const hooks = generateHooks(e);
   const region = e.location?.region;
   const coords = e.location ? `${e.location.x.toFixed(1)}%, ${e.location.y.toFixed(1)}%` : null;
+  const variant = e.variant;
+  const variantSummary = variant?.description;
+  const cycleLabel = state.variantCycle?.label;
   body.innerHTML = `
     <div class="kv">
       <div>World</div><div>Dreamless Kingdom</div>
@@ -217,9 +483,15 @@ function openModal(e){
       ${region ? `<div>Region</div><div>${region}</div>` : ''}
       <div>ID</div><div><code>${e.id}</code></div>
       ${coords ? `<div>Map Coordinates</div><div>${coords}</div>` : ''}
+      ${variant?.rarity ? `<div>Rarity</div><div>${variant.rarity}</div>` : ''}
+      ${variant?.mutation ? `<div>Mutation</div><div>${variant.mutation}</div>` : ''}
+      ${variant?.condition ? `<div>Condition</div><div>${variant.condition}</div>` : ''}
+      ${variant?.quirk ? `<div>Quirk</div><div>${variant.quirk}</div>` : ''}
+      ${cycleLabel ? `<div>Cycle</div><div>${cycleLabel}</div>` : ''}
     </div>
     <hr/>
     <p>${e.summary}</p>
+    ${variantSummary ? `<div class="variant-callout"><h4>Variant Notes</h4><p>${variantSummary}</p></div>` : ''}
     <h3>Adventure Hooks</h3>
     <ul>${hooks.map(h=>`<li>${h}</li>`).join('')}</ul>
     <hr/>
@@ -250,11 +522,12 @@ async function main(){
   const res = await fetch('data/entries.json');
   const j = await res.json();
   state.entries = j.entries;
+  state.variantCycle = applyVariantProfiles(state.entries);
   state.tags = new Set(state.entries.map(e=>e.tag));
+  renderVariantCycle();
   renderTags();
   applyFilters();
   restoreFromHash();
-  renderMapMarkers();
   initExplorer();
 }
 
@@ -305,12 +578,23 @@ function renderExplorerStatus(){
   const ex = state.explorer;
   let text = 'Surveyor calibrating instruments…';
   if(ex.phase === 'travel' && ex.target?.entry){
-    const region = ex.target.entry.location?.region || 'Unknown region';
-    text = `En route to ${ex.target.entry.title} (${region})`;
+    const entry = ex.target.entry;
+    const region = entry.location?.region || 'Unknown region';
+    const variant = entry.variant;
+    const detailParts = [];
+    if(variant?.rarity) detailParts.push(variant.rarity);
+    if(variant?.condition) detailParts.push(variant.condition);
+    const detail = detailParts.length ? ` — ${detailParts.join(' • ')}` : '';
+    text = `En route to ${entry.title}${detail} (${region})`;
   } else if(ex.phase === 'collecting'){
     const remaining = Math.max(0, ex.pauseTimer || 0);
     const suffix = remaining > 0 ? ` (${Math.ceil(remaining)}s)` : '';
-    text = `Cataloguing ${ex.lastCollectedTitle}${suffix}`;
+    const variant = ex.lastCollectedVariant;
+    const detailParts = [];
+    if(variant?.rarity) detailParts.push(variant.rarity);
+    if(variant?.condition) detailParts.push(variant.condition);
+    const detail = detailParts.length ? ` — ${detailParts.join(' • ')}` : '';
+    text = `Cataloguing ${ex.lastCollectedTitle}${detail}${suffix}`;
   } else if(ex.phase === 'idle'){
     text = 'Surveyor selecting the next waypoint…';
   }
@@ -331,7 +615,13 @@ function renderExplorerLog(){
   state.explorer.log.forEach(item=>{
     const li = document.createElement('li');
     const time = item.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-    li.innerHTML = `<span class="log-time">${time}</span><span class="log-title">${item.title}</span>`;
+    const noteParts = [];
+    if(item.rarity) noteParts.push(item.rarity);
+    if(item.condition) noteParts.push(item.condition);
+    if(item.mutation) noteParts.push(item.mutation);
+    if(item.quirk) noteParts.push(item.quirk);
+    const note = noteParts.length ? `<span class="log-note">${noteParts.join(' • ')}</span>` : '';
+    li.innerHTML = `<span class="log-time">${time}</span><span class="log-title">${item.title}</span>${note}`;
     frag.appendChild(li);
   });
   if(!state.explorer.log.length){
@@ -376,12 +666,21 @@ function handleExplorerCollect(entry){
   const isNew = !ex.collected.has(entry.id);
   ex.collected.add(entry.id);
   ex.totalCollected += 1;
-  ex.log.unshift({ id: entry.id, title: entry.title, time: new Date() });
+  ex.log.unshift({
+    id: entry.id,
+    title: entry.title,
+    time: new Date(),
+    rarity: entry.variant?.rarity,
+    condition: entry.variant?.condition,
+    mutation: entry.variant?.mutation,
+    quirk: entry.variant?.quirk
+  });
   ex.log = ex.log.slice(0, 8);
   ex.pauseTimer = 2.2;
   ex.pauseDuration = ex.pauseTimer;
   ex.phase = 'collecting';
   ex.lastCollectedTitle = entry.title;
+  ex.lastCollectedVariant = entry.variant || null;
   ex.target = null;
   renderExplorerUI();
   if(isNew){
@@ -445,7 +744,7 @@ function initExplorer(){
   state.explorer = {
     x: 50,
     y: 50,
-    speed: 9,
+    speed: 5,
     collected: new Set(),
     log: [],
     totalCollected: 0,
@@ -453,6 +752,7 @@ function initExplorer(){
     pauseTimer: 0,
     pauseDuration: 0,
     lastCollectedTitle: '',
+    lastCollectedVariant: null,
     element: null,
     lastTick: null,
   };
