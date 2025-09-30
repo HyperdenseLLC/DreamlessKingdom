@@ -10,6 +10,27 @@ const state = {
   variantCycle: null,
 };
 
+const ISO_PROJECTION = (()=>{
+  const angle = Math.PI / 6;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const rangeX = cos * 100;
+  const marginX = 8;
+  const marginYTop = 6;
+  const marginYBottom = 12;
+  return {
+    angle,
+    cos,
+    sin,
+    rangeX,
+    marginX,
+    marginYTop,
+    marginYBottom,
+    scaleX: 100 - marginX,
+    scaleY: 100 - (marginYTop + marginYBottom),
+  };
+})();
+
 const MAP_ZONES = [
   {
     name: 'Aurora Marches',
@@ -321,7 +342,67 @@ function renderVariantCycle(){
   `;
 }
 
-function renderMapZones(map){
+function projectIsoPoint(x, y){
+  if(x == null || y == null) return { left: 50, top: 50 };
+  const rawX = ((x - y) * ISO_PROJECTION.cos + ISO_PROJECTION.rangeX) / (ISO_PROJECTION.rangeX * 2);
+  const rawY = (x + y) * ISO_PROJECTION.sin / 100;
+  const left = rawX * ISO_PROJECTION.scaleX + ISO_PROJECTION.marginX / 2;
+  const top = rawY * ISO_PROJECTION.scaleY + ISO_PROJECTION.marginYTop;
+  return {
+    left: Math.min(100, Math.max(0, left)),
+    top: Math.min(100, Math.max(0, top)),
+  };
+}
+
+function projectIsoSize(width, height){
+  const w = Math.max(0, Number.isFinite(width) ? width : 0);
+  const hSource = Number.isFinite(height) ? height : width;
+  const h = Math.max(0, hSource);
+  const isoWidth = (w * ISO_PROJECTION.cos / (ISO_PROJECTION.rangeX * 2)) * ISO_PROJECTION.scaleX;
+  const isoHeight = (h * ISO_PROJECTION.sin / 100) * ISO_PROJECTION.scaleY;
+  return {
+    width: Math.min(ISO_PROJECTION.scaleX, Math.max(isoWidth, 6)),
+    height: Math.min(ISO_PROJECTION.scaleY, Math.max(isoHeight, Math.max(isoWidth * 0.65, 5))),
+  };
+}
+
+function ensureMapStructure(){
+  const map = document.querySelector('#map');
+  if(!map) return null;
+  if(map._layers) return map._layers;
+  map.innerHTML = '';
+  const ground = document.createElement('div');
+  ground.className = 'map-ground';
+  ground.setAttribute('aria-hidden', 'true');
+  const pathSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  pathSvg.classList.add('map-path');
+  pathSvg.setAttribute('viewBox', '0 0 100 100');
+  pathSvg.setAttribute('preserveAspectRatio', 'none');
+  pathSvg.setAttribute('aria-hidden', 'true');
+  const pathLine = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+  pathLine.classList.add('map-path-line');
+  pathLine.setAttribute('vector-effect', 'non-scaling-stroke');
+  pathSvg.appendChild(pathLine);
+  const zonesLayer = document.createElement('div');
+  zonesLayer.className = 'map-layer map-layer-zones';
+  const markersLayer = document.createElement('div');
+  markersLayer.className = 'map-layer map-layer-markers';
+  const actorsLayer = document.createElement('div');
+  actorsLayer.className = 'map-layer map-layer-actors';
+  map.append(ground, pathSvg, zonesLayer, markersLayer, actorsLayer);
+  map._layers = {
+    ground,
+    path: { svg: pathSvg, line: pathLine },
+    zones: zonesLayer,
+    markers: markersLayer,
+    actors: actorsLayer,
+  };
+  return map._layers;
+}
+
+function renderMapZones(layer){
+  if(!layer) return;
+  layer.innerHTML = '';
   const activeRegions = new Set(
     state.filtered
       .map(e => e.location?.region)
@@ -335,23 +416,28 @@ function renderMapZones(map){
     const vertical = zone.y > 55 ? 'label-above' : 'label-below';
     classes.push(vertical);
     zoneEl.className = classes.join(' ');
-    zoneEl.style.left = `${zone.x}%`;
-    zoneEl.style.top = `${zone.y}%`;
-    zoneEl.style.width = `${zone.width}%`;
-    zoneEl.style.height = `${(zone.height || zone.width)}%`;
+    const { left, top } = projectIsoPoint(zone.x, zone.y);
+    const size = projectIsoSize(zone.width, zone.height || zone.width);
+    zoneEl.style.left = `${left}%`;
+    zoneEl.style.top = `${top}%`;
+    zoneEl.style.width = `${size.width}%`;
+    zoneEl.style.height = `${size.height}%`;
     const label = document.createElement('div');
     label.className = 'map-zone-label';
     label.innerHTML = `<strong>${zone.name}</strong>${zone.description ? `<span>${zone.description}</span>` : ''}`;
     zoneEl.appendChild(label);
-    map.appendChild(zoneEl);
+    layer.appendChild(zoneEl);
   });
 }
 
 function renderMapMarkers(){
   const map = document.querySelector('#map');
   if(!map) return;
-  map.innerHTML = '';
-  renderMapZones(map);
+  const layers = ensureMapStructure();
+  if(!layers) return;
+  const { zones, markers } = layers;
+  renderMapZones(zones);
+  markers.innerHTML = '';
   const filteredIds = new Set(state.filtered.map(e=>e.id));
   state.entries.filter(e=>e.location).forEach(e=>{
     const marker = document.createElement('button');
@@ -359,9 +445,11 @@ function renderMapMarkers(){
     if(!filteredIds.has(e.id)) classes.push('dim');
     if(state.explorer?.collected?.has(e.id)) classes.push('collected');
     if(state.explorer?.target?.entry?.id === e.id) classes.push('target');
+    if(e.category === 'Character') classes.push('character');
     marker.className = classes.join(' ');
-    marker.style.left = `${e.location.x}%`;
-    marker.style.top = `${e.location.y}%`;
+    const pos = projectIsoPoint(e.location.x, e.location.y);
+    marker.style.left = `${pos.left}%`;
+    marker.style.top = `${pos.top}%`;
     const region = e.location.region || 'Unknown region';
     const variant = e.variant;
     const ariaLabel = [e.title, variant?.rarity, region].filter(Boolean).join(' — ');
@@ -369,11 +457,14 @@ function renderMapMarkers(){
     marker.title = `${e.title}${variant?.rarity ? ` (${variant.rarity})` : ''}\n${region}`;
     marker.innerHTML = '<span></span>';
     marker.addEventListener('click', ()=>openModal(e));
-    map.appendChild(marker);
+    markers.appendChild(marker);
   });
   if(state.explorer){
     renderExplorerElement();
+  } else {
+    layers.actors.innerHTML = '';
   }
+  updateExplorerTrail();
 }
 
 function normalize(s) { return (s||'').toLowerCase(); }
@@ -551,14 +642,16 @@ function ensureExplorerElement(){
   if(!state.explorer) return null;
   const map = document.querySelector('#map');
   if(!map) return null;
-  let el = map.querySelector('.explorer');
+  const layers = ensureMapStructure();
+  if(!layers) return null;
+  let el = layers.actors.querySelector('.explorer');
   if(!el){
     el = document.createElement('div');
     el.className = 'explorer';
     el.setAttribute('aria-hidden', 'true');
-    map.appendChild(el);
-  } else if(el.parentElement !== map){
-    map.appendChild(el);
+    layers.actors.appendChild(el);
+  } else if(el.parentElement !== layers.actors){
+    layers.actors.appendChild(el);
   }
   state.explorer.element = el;
   return el;
@@ -568,8 +661,47 @@ function renderExplorerElement(){
   if(!state.explorer) return;
   const el = ensureExplorerElement();
   if(!el) return;
-  el.style.left = `${state.explorer.x}%`;
-  el.style.top = `${state.explorer.y}%`;
+  const pos = projectIsoPoint(state.explorer.x, state.explorer.y);
+  el.style.left = `${pos.left}%`;
+  el.style.top = `${pos.top}%`;
+}
+
+function updateExplorerTrail(){
+  const map = document.querySelector('#map');
+  if(!map) return;
+  const layers = ensureMapStructure();
+  if(!layers) return;
+  const line = layers.path?.line;
+  if(!line) return;
+  const path = state.explorer?.path || [];
+  if(!path.length){
+    line.setAttribute('points', '');
+    line.classList.remove('active');
+    return;
+  }
+  const points = path.map(pt => {
+    const projected = projectIsoPoint(pt.x, pt.y);
+    return `${projected.left},${projected.top}`;
+  }).join(' ');
+  line.setAttribute('points', points);
+  line.classList.toggle('active', path.length > 1);
+}
+
+function recordExplorerPosition(force = false){
+  const ex = state.explorer;
+  if(!ex) return;
+  if(!Array.isArray(ex.path)) ex.path = [];
+  const last = ex.path[ex.path.length - 1];
+  const delta = last ? Math.hypot(ex.x - last.x, ex.y - last.y) : Infinity;
+  if(!last || delta >= 0.4 || force){
+    ex.path.push({ x: ex.x, y: ex.y });
+    if(ex.path.length > 240){
+      ex.path.shift();
+    }
+  } else {
+    ex.path[ex.path.length - 1] = { x: ex.x, y: ex.y };
+  }
+  updateExplorerTrail();
 }
 
 function renderExplorerStatus(){
@@ -664,6 +796,7 @@ function handleExplorerCollect(entry){
   const ex = state.explorer;
   if(!ex) return;
   const isNew = !ex.collected.has(entry.id);
+  recordExplorerPosition();
   ex.collected.add(entry.id);
   ex.totalCollected += 1;
   ex.log.unshift({
@@ -731,6 +864,7 @@ function explorerStep(ts){
     }
   }
 
+  recordExplorerPosition();
   renderExplorerElement();
   state.explorerFrame = requestAnimationFrame(explorerStep);
 }
@@ -755,8 +889,10 @@ function initExplorer(){
     lastCollectedVariant: null,
     element: null,
     lastTick: null,
+    path: [],
   };
   ensureExplorerElement();
+  recordExplorerPosition(true);
   renderExplorerUI();
   state.explorerFrame = requestAnimationFrame(explorerStep);
 }
