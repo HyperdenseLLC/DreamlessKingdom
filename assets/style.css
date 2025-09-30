@@ -376,25 +376,22 @@ button:hover, .badge:hover {
   aspect-ratio: 16/10;
   border-radius: 20px;
   border: 1px solid rgba(124, 111, 167, 0.35);
-  background:
-    radial-gradient(circle at 26% 18%, rgba(212, 175, 55, 0.22), transparent 60%),
-    radial-gradient(circle at 78% 74%, rgba(111, 203, 255, 0.22), transparent 62%),
-    radial-gradient(circle at 12% 82%, rgba(96, 154, 255, 0.16), transparent 66%),
-    linear-gradient(168deg, #0c1322, #11182a 40%, #0a1223 100%);
-  background-size: 140% 140%;
-  background-position: 50% 48%;
-  overflow: hidden;
+  background: radial-gradient(circle at 22% 18%, rgba(212, 175, 55, 0.18), transparent 62%),
+              radial-gradient(circle at 82% 72%, rgba(117, 198, 255, 0.18), transparent 60%),
+              linear-gradient(175deg, #0b1120 15%, #0f1628 55%, #080f1d 100%);
+  overflow: visible;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.55);
 }
 
 .map::before {
   content: '';
   position: absolute;
-  inset: -12%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.12), transparent 68%);
+  inset: 6% 8% 12%;
+  background: radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.15), transparent 72%);
+  filter: blur(28px);
   opacity: 0.35;
-  filter: blur(18px);
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
 }
 
 .map::after {
@@ -402,31 +399,111 @@ button:hover, .badge:hover {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(0deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 10% 10%;
-  opacity: 0.32;
+    repeating-linear-gradient(150deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 22px),
+    repeating-linear-gradient(30deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 22px);
+  opacity: 0.24;
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+
+.map-ground {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: polygon(4% 6%, 96% 6%, 100% 62%, 50% 88%, 0% 62%);
+  background:
+    linear-gradient(185deg, rgba(28, 38, 64, 0.96), rgba(14, 20, 37, 0.94) 55%, rgba(7, 12, 26, 0.92)),
+    radial-gradient(circle at 50% 20%, rgba(212, 175, 55, 0.15), transparent 65%);
+  border: 1px solid rgba(124, 111, 167, 0.38);
+  box-shadow: inset 0 -18px 35px rgba(0, 0, 0, 0.55), 0 30px 45px rgba(0, 0, 0, 0.55);
+  z-index: 1;
+}
+
+.map-ground::after {
+  content: '';
+  position: absolute;
+  inset: 7% 9% 18% 9%;
+  background-image:
+    repeating-linear-gradient(150deg, rgba(112, 184, 255, 0.08) 0, rgba(112, 184, 255, 0.08) 1px, transparent 1px, transparent 18px),
+    repeating-linear-gradient(30deg, rgba(212, 175, 55, 0.08) 0, rgba(212, 175, 55, 0.08) 1px, transparent 1px, transparent 18px);
+  opacity: 0.6;
+  mix-blend-mode: screen;
+}
+
+.map-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.map-layer-zones {
+  z-index: 3;
+}
+
+.map-layer-markers {
+  z-index: 5;
+}
+
+.map-layer-markers .marker {
+  pointer-events: auto;
+}
+
+.map-layer-actors {
+  z-index: 6;
+}
+
+.map-path {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.map-path-line {
+  fill: none;
+  stroke: rgba(255, 132, 196, 0.82);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 2.4 1.5;
+  stroke-dashoffset: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 132, 196, 0.65));
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.map-path-line.active {
+  opacity: 0.9;
+  animation: path-flow 12s linear infinite;
+}
+
+@keyframes path-flow {
+  to {
+    stroke-dashoffset: -12;
+  }
 }
 
 .map-zone {
   position: absolute;
   transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(124, 111, 167, 0.26), rgba(124, 111, 167, 0.06) 60%, transparent 74%);
-  border: 1px solid rgba(124, 111, 167, 0.35);
-  box-shadow: 0 0 60px rgba(124, 111, 167, 0.18);
+  border-radius: 48% 48% 52% 52%;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(142, 129, 196, 0.42), transparent 65%),
+    radial-gradient(ellipse at 50% 80%, rgba(67, 108, 196, 0.18), transparent 70%);
+  border: 1px solid rgba(124, 111, 167, 0.42);
+  box-shadow: 0 18px 40px rgba(60, 86, 144, 0.35);
   pointer-events: none;
   z-index: 1;
-  opacity: 0.45;
+  opacity: 0.5;
   transition: opacity 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
 }
 
 .map-zone.active {
-  opacity: 0.92;
-  border-color: rgba(212, 175, 55, 0.55);
-  box-shadow: 0 0 80px rgba(212, 175, 55, 0.25);
+  opacity: 0.95;
+  border-color: rgba(212, 175, 55, 0.65);
+  box-shadow: 0 26px 55px rgba(212, 175, 55, 0.35);
   transform: translate(-50%, -50%) scale(1.05);
 }
 
@@ -541,6 +618,17 @@ button:hover, .badge:hover {
   animation: none;
 }
 
+.marker.character {
+  background: linear-gradient(180deg, #63f0ff, #1f9bff);
+  border-color: rgba(233, 248, 255, 0.9);
+  box-shadow: 0 0 0 0 rgba(99, 240, 255, 0.55);
+}
+
+.marker.character.dim {
+  background: rgba(99, 240, 255, 0.55);
+  border-color: rgba(207, 244, 255, 0.5);
+}
+
 .marker.collected {
   border-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 0 0 8px rgba(212, 175, 55, 0.18);
@@ -574,6 +662,11 @@ button:hover, .badge:hover {
   border-radius: 50%;
   background: var(--accent-gold);
   border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+.legend-dot.character {
+  background: linear-gradient(180deg, #63f0ff, #1f9bff);
+  border-color: rgba(233, 248, 255, 0.9);
 }
 
 .legend-dot.dim {
