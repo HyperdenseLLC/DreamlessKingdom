@@ -17,6 +17,17 @@
       <button id="export" title="Export current view as JSON">Export JSON</button>
       <span class="badge">Showing <span id="count">0/0</span></span>
     </div>
+    <section class="map-wrapper" aria-label="Interactive map of the Dreamless Kingdom">
+      <div class="map-header">
+        <h2>Atlas Overlay</h2>
+        <p class="small">Markers glow when they match your current search. Click a marker to open the full entry.</p>
+      </div>
+      <div id="map" class="map" role="img" aria-label="Stylised map of the Dreamless Kingdom with item markers"></div>
+      <div class="map-legend small">
+        <span class="legend-item"><span class="legend-dot"></span> Discoverable entry</span>
+        <span class="legend-item"><span class="legend-dot dim"></span> Outside current filters</span>
+      </div>
+    </section>
     <section id="grid" class="grid" aria-live="polite"></section>
     <div class="footer">v0.1 • Static app (no build) • Data: <code>data/entries.json</code></div>
   </div>

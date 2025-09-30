@@ -7,6 +7,24 @@ const state = {
   tag: 'All',
 };
 
+function renderMapMarkers(){
+  const map = document.querySelector('#map');
+  if(!map) return;
+  map.innerHTML = '';
+  const filteredIds = new Set(state.filtered.map(e=>e.id));
+  state.entries.filter(e=>e.location).forEach(e=>{
+    const marker = document.createElement('button');
+    marker.className = 'marker' + (filteredIds.has(e.id) ? '' : ' dim');
+    marker.style.left = `${e.location.x}%`;
+    marker.style.top = `${e.location.y}%`;
+    marker.setAttribute('aria-label', `${e.title} — ${e.location.region||'Unknown region'}`);
+    marker.title = `${e.title}\n${e.location.region||'Unknown region'}`;
+    marker.innerHTML = '<span></span>';
+    marker.addEventListener('click', ()=>openModal(e));
+    map.appendChild(marker);
+  });
+}
+
 function normalize(s) { return (s||'').toLowerCase(); }
 
 function generateHooks(e) {
@@ -39,6 +57,7 @@ function applyFilters() {
   });
   renderGrid();
   renderCount();
+  renderMapMarkers();
 }
 
 function renderCount(){
@@ -82,12 +101,16 @@ function openModal(e){
   const modal = document.querySelector('#modal');
   const body = modal.querySelector('.body');
   const hooks = generateHooks(e);
+  const region = e.location?.region;
+  const coords = e.location ? `${e.location.x.toFixed(1)}%, ${e.location.y.toFixed(1)}%` : null;
   body.innerHTML = `
     <div class="kv">
       <div>World</div><div>Dreamless Kingdom</div>
       <div>Category</div><div>${e.category||'Entry'}</div>
       <div>Tag</div><div>${e.tag}</div>
+      ${region ? `<div>Region</div><div>${region}</div>` : ''}
       <div>ID</div><div><code>${e.id}</code></div>
+      ${coords ? `<div>Map Coordinates</div><div>${coords}</div>` : ''}
     </div>
     <hr/>
     <p>${e.summary}</p>
@@ -125,6 +148,7 @@ async function main(){
   renderTags();
   applyFilters();
   restoreFromHash();
+  renderMapMarkers();
 }
 
 window.addEventListener('hashchange', restoreFromHash);

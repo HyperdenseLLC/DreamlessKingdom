@@ -8,56 +8,96 @@
       "title": "Perfumer's Incense",
       "summary": "Attracts rare creatures and grants passage past the forest guardians. Crafted from mint, memory, and longing.",
       "tag": "Key Item",
-      "category": "Item"
+      "category": "Item",
+      "location": { "x": 18, "y": 36, "region": "Whispering Arboretum" }
     },
     {
       "id": "power-belt",
       "title": "Power Belt",
       "summary": "A prototype meant to make labor lighter. Opens the Carnival gates and moves the forest boulder blocking Deep Mines access.",
       "tag": "Key Item",
-      "category": "Item"
+      "category": "Item",
+      "location": { "x": 52, "y": 68, "region": "Carnival Quarter" }
     },
     {
       "id": "manifestos",
       "title": "Lost Manifestos (I-III)",
       "summary": "Forbidden texts that reveal the true liturgy hidden behind the Palace's gold trim and pretense. Truth that needs no sermon, only a vessel.",
       "tag": "Quest Item",
-      "category": "Item"
+      "category": "Item",
+      "location": { "x": 64, "y": 24, "region": "Gilt Palace" }
     },
     {
       "id": "dreamroot",
       "title": "Dreamroot",
       "summary": "A rare plant that may restore the ability to dream. Sought by those who remember what sleeping used to mean.",
       "tag": "Rare Material",
-      "category": "Item"
+      "category": "Item",
+      "location": { "x": 28, "y": 60, "region": "Verdant Hollows" }
     },
     {
       "id": "sparkling-mineral",
       "title": "Sparkling Mineral",
       "summary": "Hidden deep below, once dreamed of by the Taskmaster. Reminds builders how to construct with hope instead of mere order.",
       "tag": "Crafting Material",
-      "category": "Item"
+      "category": "Item",
+      "location": { "x": 80, "y": 72, "region": "Deep Mines" }
     },
     {
       "id": "golden-cap",
       "title": "Golden Cap Sphere",
       "summary": "Alchemical creation that clears mind fog. Brewed from Honeyglobe Capsules and memories of clearer times.",
       "tag": "Consumable",
-      "category": "Item"
+      "category": "Item",
+      "location": { "x": 45, "y": 48, "region": "Alchemists' Span" }
     },
     {
       "id": "blooming-robes",
       "title": "Blooming Robes",
       "summary": "Discarded Choir vestments where spores took root. They bloom beautifully, telling secrets in fungal rhythms.",
       "tag": "Trade Item",
-      "category": "Item"
+      "category": "Item",
+      "location": { "x": 35, "y": 22, "region": "Choir Ruins" }
     },
     {
       "id": "lost-camera",
       "title": "Lost Camera",
       "summary": "Found in the mines, traded by the Gatherer. Helps the Sporeborn capture the beauty they see in darkness.",
       "tag": "Quest Item",
-      "category": "Item"
+      "category": "Item",
+      "location": { "x": 86, "y": 55, "region": "Subterranean Galleries" }
+    },
+    {
+      "id": "starwoven-compass",
+      "title": "Starwoven Compass",
+      "summary": "A lattice of meteor-thread that points toward the last place someone felt truly at peace. Revered by cloud-sailors.",
+      "tag": "Key Item",
+      "category": "Relic",
+      "location": { "x": 12, "y": 18, "region": "Skybreak Ridge" }
+    },
+    {
+      "id": "echo-lantern",
+      "title": "Echo Lantern",
+      "summary": "Lantern that remembers voices it hears and replays them as guiding harmonies within the dusk-tunnels.",
+      "tag": "Utility",
+      "category": "Item",
+      "location": { "x": 58, "y": 82, "region": "Dusk Tunnels" }
+    },
+    {
+      "id": "choral-seed",
+      "title": "Choral Seed Reliquary",
+      "summary": "A seed pod humming with dormant choir notes. Planting it awakens protective hymns around a campsite.",
+      "tag": "Defensive",
+      "category": "Artifact",
+      "location": { "x": 42, "y": 30, "region": "Resonant Plaza" }
+    },
+    {
+      "id": "tideturn-vial",
+      "title": "Tideturn Vial",
+      "summary": "Captures one ebb of the underground sea. When shattered, it reverses gravity for a heartbeat.",
+      "tag": "Consumable",
+      "category": "Alchemical",
+      "location": { "x": 76, "y": 40, "region": "Undersea Observatory" }
     }
   ]
 }

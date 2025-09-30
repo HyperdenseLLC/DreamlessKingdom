@@ -22,6 +22,20 @@ button:hover{border-color:var(--accent)}
 .hidden{display:none}
 .badge{border:1px solid var(--line);background:var(--panel);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:12px}
 .badge.active{border-color:var(--accent);color:var(--ink)}
+.map-wrapper{margin:28px 0;background:linear-gradient(135deg,#10182b,#181f33);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 14px 32px rgba(0,0,0,.25)}
+.map-header{display:flex;flex-direction:column;gap:4px;margin-bottom:16px}
+.map-header h2{margin:0;font-size:20px}
+.map{position:relative;width:100%;padding-top:62%;border:1px solid var(--line);border-radius:18px;background:radial-gradient(circle at 30% 20%, rgba(224,177,65,.25), transparent 45%), radial-gradient(circle at 70% 70%, rgba(111,203,255,.18), transparent 50%), linear-gradient(160deg,#0f1524,#12192a 40%,#10152b 100%);overflow:hidden}
+.map::after{content:'';position:absolute;inset:0;background-image:linear-gradient(0deg,rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:14% 14%;opacity:.35;pointer-events:none}
+.marker{position:absolute;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.8);background:var(--accent);box-shadow:0 0 0 0 rgba(224,177,65,.6);animation:pulse 3s infinite;cursor:pointer;display:grid;place-items:center}
+.marker:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.marker span{position:absolute;width:6px;height:6px;border-radius:50%;background:#121622}
+.marker.dim{background:rgba(147,152,172,.65);border-color:rgba(211,214,224,.4);box-shadow:none;animation:none}
+.map-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;color:var(--muted)}
+.legend-item{display:inline-flex;align-items:center;gap:6px}
+.legend-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);border:1px solid rgba(255,255,255,.8)}
+.legend-dot.dim{background:rgba(147,152,172,.65);border-color:rgba(211,214,224,.4)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,177,65,.6)}70%{box-shadow:0 0 0 14px rgba(224,177,65,0)}100%{box-shadow:0 0 0 0 rgba(224,177,65,0)}}
 .modal{position:fixed;inset:0;display:none;background:rgba(0,0,0,.55);place-items:center;padding:16px}
 .modal.open{display:grid}
 .sheet{max-width:760px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
