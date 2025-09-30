@@ -28,6 +28,19 @@
         <span class="legend-item"><span class="legend-dot dim"></span> Outside current filters</span>
       </div>
     </section>
+    <section class="observer-panel" aria-live="polite" aria-label="Automated expedition tracker">
+      <div class="panel-header">
+        <h2>Expedition Observer</h2>
+        <p class="small">A lone surveyor roams the Dreamless Kingdom, collecting flora samples for the archive. Watch their progress and browse the catalogue at your leisure.</p>
+      </div>
+      <div class="observer-body">
+        <div class="observer-stats">
+          <div class="tally">Samples secured: <strong id="explorer-count">0</strong></div>
+          <div id="explorer-status" class="small muted">Surveyor calibrating instruments…</div>
+        </div>
+        <ol id="explorer-log" class="observer-log" aria-label="Recent specimens catalogued"></ol>
+      </div>
+    </section>
     <section id="grid" class="grid" aria-live="polite"></section>
     <div class="footer">v0.2 • Plant catalogue • Data: <code>data/entries.json</code></div>
   </div>
