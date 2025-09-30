@@ -13,6 +13,12 @@ h1{font-weight:700;font-size:28px;margin:0 0 8px}
 input[type="search"]{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line);padding:10px 12px;border-radius:12px;color:var(--ink);outline:none}
 select,button{background:var(--panel);border:1px solid var(--line);padding:10px 12px;border-radius:12px;color:var(--ink);cursor:pointer}
 button:hover{border-color:var(--accent)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabs button{border-radius:999px;padding:8px 14px;font-size:14px;border:1px solid var(--line);background:var(--panel);color:var(--muted)}
+.tabs button.active{border-color:var(--accent);color:var(--ink);background:rgba(224,177,65,0.12)}
+.tag-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag-filter .label{font-size:12px;color:var(--muted)}
+.chipbar{display:flex;gap:8px;flex-wrap:wrap}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
 .card{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:16px;transition:transform .1s ease, border-color .2s}
 .card:hover{transform:translateY(-2px);border-color:var(--accent)}

@@ -1,0 +1,151 @@
+{
+  "catalog": "Flora Atlas",
+  "version": "0.1.0",
+  "generated_at": "2025-09-30T19:05:11.138316Z",
+  "plants": [
+    {
+      "id": "lumina-reed",
+      "title": "Lumina Reed",
+      "summary": "Slender stalks that store starlight and release it as a guided glow along waterways after dusk.",
+      "ecosystem": "Mist Marsh",
+      "classification": "Bioluminescent Reed",
+      "rarity": "Uncommon",
+      "features": [
+        "Roots inhale fog and exhale ribbons of cool vapor that settle along game trails.",
+        "Glows brighter in the presence of truthful speech, dimming when lies take hold."
+      ],
+      "uses": [
+        "Braided into lantern tatters to light pilgrim routes without open flame.",
+        "Steeped to brew a tonic that reveals hidden ink for a single night."
+      ],
+      "hazards": "Lures nocturnal predators when harvested in clusters; marsh guides stagger cuttings to stay unseen.",
+      "propagation": "Requires moonlit flooding for seedlings to take root; canalkeepers time sluices accordingly."
+    },
+    {
+      "id": "ember-thistle",
+      "title": "Ember Thistle",
+      "summary": "A stubborn briar whose barbs warm the soil, preventing frost kill in terraced farms clinging to the Scarred Rim.",
+      "ecosystem": "Scarred Rim Terraces",
+      "classification": "Thermogenic Thistle",
+      "rarity": "Rare",
+      "features": [
+        "Hums softly when storms approach, letting farmers cover seedlings in time.",
+        "Barbs ignite only after sunset, shedding gentle sparks over fallow rows."
+      ],
+      "uses": [
+        "Dried buds kindle low-smoke hearths for underground workshops.",
+        "Seed oil, mixed with slag dust, seals heat fractures in kilnworks."
+      ],
+      "hazards": "Improper pruning can trigger flash flares; apprentices train with water-veiled shears.",
+      "propagation": "Must be paired with basalt chips from retired watchtowers to keep the soil tempered."
+    },
+    {
+      "id": "chorus-moss",
+      "title": "Chorus Moss",
+      "summary": "Faintly sings in harmony with the Choir above, calming panic in Deep Mine tunnels when kept hydrated.",
+      "ecosystem": "Deep Mines",
+      "classification": "Resonant Bryophyte",
+      "rarity": "Common",
+      "features": [
+        "Changes pitch to mirror the emotional charge of nearby workers.",
+        "Absorbs metallic dust, keeping breathing tunnels clearer."
+      ],
+      "uses": [
+        "Woven into respirator linings for calming airflow.",
+        "Pressed between ledger pages to retain the tone of testimony."
+      ],
+      "hazards": "Dries into a brittle screech if removed from echoes for too long, shattering morale instead of soothing it.",
+      "propagation": "Fed with runoff from the Choir's condensation gutters once each cycle."
+    },
+    {
+      "id": "glassvine-orchid",
+      "title": "Glassvine Orchid",
+      "summary": "Translucent petals refract the skyline, disguising cliff nests in the Shardspire Reaches.",
+      "ecosystem": "Shardspire Reaches",
+      "classification": "Camouflaging Epiphyte",
+      "rarity": "Uncommon",
+      "features": [
+        "Tendrils memorize the light of each dawn, shifting hue to match it the next day.",
+        "Pods chime when winds exceed safe gliding speeds."
+      ],
+      "uses": [
+        "Hung over watchposts to hide rebel beacons from aerial patrols.",
+        "Distilled resin forms prisms used in signal encryption."
+      ],
+      "hazards": "Shatters into razor threads if handled with cold iron; harvesters wear heated silk gloves.",
+      "propagation": "Requires nesting partnerships with rookwing birds; stewards leave trinkets to invite them back."
+    },
+    {
+      "id": "emberleaf-tea",
+      "title": "Emberleaf Tea Tree",
+      "summary": "A compact tree whose leaves steep into a tea that keeps dreamless sleepers warm through the Palace nights.",
+      "ecosystem": "Palace Greenward",
+      "classification": "Aromatic Evergreen",
+      "rarity": "Cultivated",
+      "features": [
+        "Leaves carry faint lullabies remembered by the gardeners who prune them.",
+        "Bark inscribes annual rings shaped like closed eyes."
+      ],
+      "uses": [
+        "Brewed in the infirmary to steady the breath of exhausted scribes.",
+        "Powdered leaf dust polishes ceremonial masks without scratching gold filigree."
+      ],
+      "hazards": "Overharvesting steals the lullabies, leaving the tea bitter and unrestful.",
+      "propagation": "Cuttings root only when replanted beside a sleeping volunteer for three consecutive nights."
+    },
+    {
+      "id": "sunglint-cactus",
+      "title": "Sunglint Cactus",
+      "summary": "Stores enough dawnlight to irrigate a caravan's worth of succulents, releasing it as warm mist on command.",
+      "ecosystem": "Dawnward Expanse",
+      "classification": "Photosynthetic Reservoir",
+      "rarity": "Rare",
+      "features": [
+        "Spines align with constellations the caravan seeks, acting as living compasses.",
+        "Flesh ripens into panes that can be etched with travel maps."
+      ],
+      "uses": [
+        "Serves as emergency fog makers to hide nomad camps at sunrise.",
+        "Sap sweetens desalinators, allowing brine to be reclaimed twice as fast."
+      ],
+      "hazards": "If tapped during eclipse hours, the stored light collapses into glassy dust, ruining the plant.",
+      "propagation": "Seeds must be sung to with caravan route chants passed down unbroken."
+    },
+    {
+      "id": "echofern",
+      "title": "Echofern",
+      "summary": "Fronds repeat whispered messages hours later, making them indispensable for secret correspondence across the Voidbridge.",
+      "ecosystem": "Voidbridge Platform",
+      "classification": "Mnemonic Fern",
+      "rarity": "Uncommon",
+      "features": [
+        "Fronds change color to indicate how many phrases they are holding.",
+        "Only repeats messages when brushed clockwise by the original speaker."
+      ],
+      "uses": [
+        "Serves as delayed courier for resistance cells working under curfew.",
+        "Archivists press fronds into treaties to ensure promises are literally remembered."
+      ],
+      "hazards": "If overburdened with secrets, fronds curl inward and refuse to open for a full season.",
+      "propagation": "Spore packets must cross the Voidbridge at dawn to remain viable."
+    },
+    {
+      "id": "hushbloom",
+      "title": "Hushbloom",
+      "summary": "Petals absorb ambient noise, allowing negotiators to carve private pockets of silence during market hour.",
+      "ecosystem": "Midnight Bazaar",
+      "classification": "Acoustic Absorber",
+      "rarity": "Rare",
+      "features": [
+        "Opens fully only when conversations reach a polite cadence.",
+        "Stores captured sounds as shimmering dust shaken free at dawn."
+      ],
+      "uses": [
+        "Crushed petals line council hoods so whispered advice goes unheard by spies.",
+        "Dust released at sunrise powers soundless wards around sanctuary rooms."
+      ],
+      "hazards": "If startled by shouting, releases stored clamor in a single deafening burst.",
+      "propagation": "Requires alternating days of raucous music and absolute quiet to bloom."
+    }
+  ]
+}
