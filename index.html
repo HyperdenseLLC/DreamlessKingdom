@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dreamless Kingdom – Living Encyclopedia</title>
+  <meta name="description" content="A lightweight, static encyclopedia for the world of Dreamless Kingdom."/>
+  <link rel="stylesheet" href="assets/style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Dreamless Kingdom – Living Encyclopedia</h1>
+    <div class="sub">Search, filter, and deep-link entries. Click any card to see auto‑generated adventure hooks.</div>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Search titles and summaries… (press /)" />
+      <div id="tags" class="toolbar"></div>
+      <button id="export" title="Export current view as JSON">Export JSON</button>
+      <span class="badge">Showing <span id="count">0/0</span></span>
+    </div>
+    <section id="grid" class="grid" aria-live="polite"></section>
+    <div class="footer">v0.1 • Static app (no build) • Data: <code>data/entries.json</code></div>
+  </div>
+
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Entry detail">
+    <article class="sheet">
+      <header>
+        <strong>Entry</strong>
+        <div class="right">
+          <span class="small">Press <kbd>Esc</kbd> to close</span>
+          <button id="close" aria-label="Close">Close</button>
+        </div>
+      </header>
+      <div class="body"></div>
+    </article>
+  </div>
+
+  <script>
+    // Focus shortcut for search
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === '/' && document.activeElement.tagName !== 'INPUT'){
+        e.preventDefault();
+        document.getElementById('q').focus();
+      }
+      if(e.key === 'Escape'){
+        const m = document.getElementById('modal');
+        if(m.classList.contains('open')) document.getElementById('close').click();
+      }
+    });
+  </script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

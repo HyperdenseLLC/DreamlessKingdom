@@ -1,0 +1,63 @@
+{
+  "world": "Dreamless Kingdom",
+  "version": "0.1.0",
+  "generated_at": "2025-09-30T19:05:11.138316Z",
+  "entries": [
+    {
+      "id": "perfumer-incense",
+      "title": "Perfumer's Incense",
+      "summary": "Attracts rare creatures and grants passage past the forest guardians. Crafted from mint, memory, and longing.",
+      "tag": "Key Item",
+      "category": "Item"
+    },
+    {
+      "id": "power-belt",
+      "title": "Power Belt",
+      "summary": "A prototype meant to make labor lighter. Opens the Carnival gates and moves the forest boulder blocking Deep Mines access.",
+      "tag": "Key Item",
+      "category": "Item"
+    },
+    {
+      "id": "manifestos",
+      "title": "Lost Manifestos (I-III)",
+      "summary": "Forbidden texts that reveal the true liturgy hidden behind the Palace's gold trim and pretense. Truth that needs no sermon, only a vessel.",
+      "tag": "Quest Item",
+      "category": "Item"
+    },
+    {
+      "id": "dreamroot",
+      "title": "Dreamroot",
+      "summary": "A rare plant that may restore the ability to dream. Sought by those who remember what sleeping used to mean.",
+      "tag": "Rare Material",
+      "category": "Item"
+    },
+    {
+      "id": "sparkling-mineral",
+      "title": "Sparkling Mineral",
+      "summary": "Hidden deep below, once dreamed of by the Taskmaster. Reminds builders how to construct with hope instead of mere order.",
+      "tag": "Crafting Material",
+      "category": "Item"
+    },
+    {
+      "id": "golden-cap",
+      "title": "Golden Cap Sphere",
+      "summary": "Alchemical creation that clears mind fog. Brewed from Honeyglobe Capsules and memories of clearer times.",
+      "tag": "Consumable",
+      "category": "Item"
+    },
+    {
+      "id": "blooming-robes",
+      "title": "Blooming Robes",
+      "summary": "Discarded Choir vestments where spores took root. They bloom beautifully, telling secrets in fungal rhythms.",
+      "tag": "Trade Item",
+      "category": "Item"
+    },
+    {
+      "id": "lost-camera",
+      "title": "Lost Camera",
+      "summary": "Found in the mines, traded by the Gatherer. Helps the Sporeborn capture the beauty they see in darkness.",
+      "tag": "Quest Item",
+      "category": "Item"
+    }
+  ]
+}
