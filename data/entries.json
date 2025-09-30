@@ -114,6 +114,38 @@
       "tag": "Theatrical",
       "category": "Plant",
       "location": { "x": 66, "y": 58, "region": "Veiled Colonnade" }
+    },
+    {
+      "id": "wanderers-ember",
+      "title": "Wanderer's Ember",
+      "summary": "Coal-bright moss that only ignites when a traveler hums their departure song. Guides plant it along the Wanderer's Causeway to keep midnight caravans visible.",
+      "tag": "Wayfinding",
+      "category": "Plant",
+      "location": { "x": 14, "y": 70, "region": "Wanderer's Causeway" }
+    },
+    {
+      "id": "archive-lichen-scroll",
+      "title": "Archive Lichen Scroll",
+      "summary": "Filigree lichens that unfurl into script when brushed with lantern soot. Record keepers in the Archive Warrens braid them into living ledgers.",
+      "tag": "Historical",
+      "category": "Plant",
+      "location": { "x": 26, "y": 84, "region": "Archive Warrens" }
+    },
+    {
+      "id": "tidelight-caul",
+      "title": "Tidelight Caul",
+      "summary": "Ribboned kelp that stores moonlight in brine pockets. Tideglass wardens stretch it across arches to guide bathyspheres through pitch currents.",
+      "tag": "Aquatic",
+      "category": "Plant",
+      "location": { "x": 88, "y": 56, "region": "Tideglass Reaches" }
+    },
+    {
+      "id": "shatterlight-thistle",
+      "title": "Shatterlight Thistle",
+      "summary": "Prismatic spines that refract forge embers into calibrating beams. Artificers of the Shatterlight Forge use them to temper dreaming steel.",
+      "tag": "Artifice",
+      "category": "Plant",
+      "location": { "x": 58, "y": 18, "region": "Shatterlight Forge" }
     }
   ]
 }

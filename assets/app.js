@@ -9,10 +9,105 @@ const state = {
   explorerFrame: null,
 };
 
+const MAP_ZONES = [
+  {
+    name: 'Aurora Marches',
+    description: 'Skybreak Ridge • Wind-Carved Steps',
+    x: 20,
+    y: 18,
+    width: 28,
+    height: 20,
+    regions: ['Skybreak Ridge', 'Wind-Carved Steps']
+  },
+  {
+    name: 'Choir Expanse',
+    description: 'Resonant Plaza • Choir Ruins • Alchemists\' Span',
+    x: 38,
+    y: 30,
+    width: 30,
+    height: 22,
+    regions: ['Resonant Plaza', 'Choir Ruins', "Alchemists' Span"]
+  },
+  {
+    name: 'Verdant Hollows',
+    description: 'Dreamroot Terraces & Whispering Groves',
+    x: 30,
+    y: 60,
+    width: 34,
+    height: 24,
+    regions: ['Verdant Hollows', 'Whispering Arboretum']
+  },
+  {
+    name: 'Carnival Ribbon',
+    description: 'Sunken Promenade • Carnival Greenways',
+    x: 46,
+    y: 72,
+    width: 28,
+    height: 22,
+    regions: ['Sunken Promenade', 'Carnival Quarter Greenways']
+  },
+  {
+    name: 'Radiant Courts',
+    description: 'Gilt Palace • Veiled Colonnade • Shatterlight Forge',
+    x: 62,
+    y: 40,
+    width: 32,
+    height: 26,
+    regions: ['Gilt Palace Conservatory', 'Veiled Colonnade', 'Shatterlight Forge']
+  },
+  {
+    name: 'Tideglass Reach',
+    description: 'Undersea Observatory • Tideglass Reaches',
+    x: 82,
+    y: 52,
+    width: 28,
+    height: 24,
+    regions: ['Undersea Observatory', 'Tideglass Reaches']
+  },
+  {
+    name: 'Veiled Deepways',
+    description: 'Deep Mines • Dusk Tunnels',
+    x: 72,
+    y: 72,
+    width: 30,
+    height: 26,
+    regions: ['Deep Mines', 'Dusk Tunnels Fen']
+  },
+  {
+    name: 'Western Fringe',
+    description: 'Wanderer\'s Causeway • Archive Warrens',
+    x: 22,
+    y: 78,
+    width: 30,
+    height: 24,
+    regions: ["Wanderer's Causeway", 'Archive Warrens']
+  }
+];
+
+function renderMapZones(map){
+  const activeRegions = new Set(
+    state.filtered
+      .map(e => e.location?.region)
+      .filter(Boolean)
+  );
+  MAP_ZONES.forEach(zone => {
+    const zoneEl = document.createElement('div');
+    const isActive = zone.regions.some(region => activeRegions.has(region));
+    zoneEl.className = 'map-zone' + (isActive ? ' active' : '');
+    zoneEl.style.left = `${zone.x}%`;
+    zoneEl.style.top = `${zone.y}%`;
+    zoneEl.style.width = `${zone.width}%`;
+    zoneEl.style.height = `${(zone.height || zone.width)}%`;
+    zoneEl.innerHTML = `<strong>${zone.name}</strong>${zone.description ? `<span>${zone.description}</span>` : ''}`;
+    map.appendChild(zoneEl);
+  });
+}
+
 function renderMapMarkers(){
   const map = document.querySelector('#map');
   if(!map) return;
   map.innerHTML = '';
+  renderMapZones(map);
   const filteredIds = new Set(state.filtered.map(e=>e.id));
   state.entries.filter(e=>e.location).forEach(e=>{
     const marker = document.createElement('button');

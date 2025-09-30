@@ -349,10 +349,24 @@ button:hover, .badge:hover {
   border-radius: 20px;
   border: 1px solid rgba(124, 111, 167, 0.35);
   background:
-    radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.2), transparent 55%),
-    radial-gradient(circle at 70% 70%, rgba(111, 203, 255, 0.2), transparent 58%),
-    linear-gradient(160deg, #0f1524, #12192a 45%, #10152b 100%);
+    radial-gradient(circle at 26% 18%, rgba(212, 175, 55, 0.22), transparent 60%),
+    radial-gradient(circle at 78% 74%, rgba(111, 203, 255, 0.22), transparent 62%),
+    radial-gradient(circle at 12% 82%, rgba(96, 154, 255, 0.16), transparent 66%),
+    linear-gradient(168deg, #0c1322, #11182a 40%, #0a1223 100%);
+  background-size: 140% 140%;
+  background-position: 50% 48%;
   overflow: hidden;
+}
+
+.map::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.12), transparent 68%);
+  opacity: 0.35;
+  filter: blur(18px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .map::after {
@@ -360,11 +374,65 @@ button:hover, .badge:hover {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 14% 14%;
-  opacity: 0.35;
+    linear-gradient(0deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 10% 10%;
+  opacity: 0.32;
   pointer-events: none;
+  z-index: 0;
+}
+
+.map-zone {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(124, 111, 167, 0.22), rgba(124, 111, 167, 0.08) 60%, transparent 72%);
+  border: 1px solid rgba(124, 111, 167, 0.35);
+  box-shadow: 0 0 60px rgba(124, 111, 167, 0.18);
+  padding: clamp(14px, 2vw, 22px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: 'Inconsolata', monospace;
+  font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.55;
+  transition: opacity 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
+}
+
+.map-zone strong {
+  display: block;
+  font-family: 'Crimson Text', serif;
+  font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+  letter-spacing: 0.08em;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(212, 175, 55, 0.35);
+}
+
+.map-zone span {
+  display: block;
+  margin-top: 4px;
+  font-size: clamp(0.55rem, 1vw, 0.7rem);
+  letter-spacing: 0.05em;
+  text-transform: none;
+  color: rgba(220, 214, 245, 0.55);
+}
+
+.map-zone.active {
+  opacity: 0.92;
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 80px rgba(212, 175, 55, 0.25);
+  transform: translate(-50%, -50%) scale(1.03);
+}
+
+.map-zone.active span {
+  color: rgba(212, 175, 55, 0.72);
 }
 
 .marker {
@@ -380,6 +448,7 @@ button:hover, .badge:hover {
   cursor: pointer;
   display: grid;
   place-items: center;
+  z-index: 2;
 }
 
 .marker span {
