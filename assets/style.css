@@ -312,22 +312,22 @@ button:hover, .badge:hover {
 
 .map-atlas {
   display: grid;
-  gap: 24px;
+  gap: 32px;
 }
 
 .map-panel {
   background: linear-gradient(135deg, rgba(26, 31, 52, 0.95), rgba(12, 18, 35, 0.95));
   border: 1px solid var(--accent-purple);
   border-radius: 26px;
-  padding: 24px;
+  padding: 28px;
   box-shadow: 0 22px 45px rgba(0, 0, 0, 0.45);
 }
 
 .map-header {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 18px;
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
 .map-header h2 {
@@ -343,8 +343,8 @@ button:hover, .badge:hover {
 }
 
 .map-variant {
-  margin-top: 10px;
-  padding: 12px 14px;
+  margin-top: 16px;
+  padding: 16px 18px;
   border-radius: 12px;
   background: rgba(12, 17, 32, 0.82);
   border: 1px solid rgba(124, 111, 167, 0.35);
@@ -373,7 +373,7 @@ button:hover, .badge:hover {
 .map {
   position: relative;
   width: 100%;
-  aspect-ratio: 16/10;
+  aspect-ratio: 16/9;
   border-radius: 20px;
   border: 1px solid rgba(124, 111, 167, 0.35);
   background: radial-gradient(circle at 22% 18%, rgba(212, 175, 55, 0.18), transparent 62%),
@@ -549,6 +549,7 @@ button:hover, .badge:hover {
 
 .map-zone-label {
   position: absolute;
+  --label-gap: 22px;
   background: rgba(12, 17, 32, 0.92);
   backdrop-filter: blur(6px);
   border-radius: 14px;
@@ -561,9 +562,10 @@ button:hover, .badge:hover {
   text-transform: uppercase;
   color: var(--muted);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
-  z-index: 4;
+  z-index: 8;
   min-width: clamp(120px, 16vw, 220px);
   pointer-events: none;
+  transform: translate(calc(-50% + var(--label-shift-x, 0px)), var(--label-shift-y, 0px));
 }
 
 .map-zone-label strong {
@@ -586,15 +588,13 @@ button:hover, .badge:hover {
 }
 
 .map-zone.label-below .map-zone-label {
-  top: calc(100% + 10px);
+  top: calc(100% + var(--label-gap, 22px));
   left: 50%;
-  transform: translateX(-50%);
 }
 
 .map-zone.label-above .map-zone-label {
-  bottom: calc(100% + 10px);
+  bottom: calc(100% + var(--label-gap, 22px));
   left: 50%;
-  transform: translateX(-50%);
 }
 
 .map-zone.label-above .map-zone-label::after,
@@ -605,15 +605,15 @@ button:hover, .badge:hover {
   transform: translateX(-50%);
   width: 1px;
   background: linear-gradient(180deg, rgba(212, 175, 55, 0.6), transparent);
-  height: 28px;
+  height: calc(var(--label-gap, 22px) - 6px);
 }
 
 .map-zone.label-below .map-zone-label::after {
-  top: -28px;
+  top: calc(-1 * (var(--label-gap, 22px) - 6px));
 }
 
 .map-zone.label-above .map-zone-label::after {
-  bottom: -28px;
+  bottom: calc(-1 * (var(--label-gap, 22px) - 6px));
   transform: translateX(-50%) rotate(180deg);
 }
 
@@ -678,9 +678,9 @@ button:hover, .badge:hover {
 
 .map-legend {
   display: flex;
-  gap: 18px;
+  gap: 22px;
   flex-wrap: wrap;
-  margin-top: 16px;
+  margin-top: 24px;
   font-family: 'Inconsolata', monospace;
   color: var(--muted);
 }

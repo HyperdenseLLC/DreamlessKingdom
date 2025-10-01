@@ -11,16 +11,16 @@ const state = {
   npcs: [],
 };
 
-const MAP_WORLD_SCALE = 1.55;
+const MAP_WORLD_SCALE = 1.32;
 
 const ISO_PROJECTION = (()=>{
   const angle = Math.PI / 6;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   const rangeX = cos * 100;
-  const marginX = 8;
-  const marginYTop = 6;
-  const marginYBottom = 12;
+  const marginX = 14;
+  const marginYTop = 10;
+  const marginYBottom = 18;
   return {
     angle,
     cos,
@@ -148,6 +148,34 @@ const NPCS = [
     ]
   },
   {
+    id: 'skywright-ila',
+    name: 'Skywright Ila',
+    title: 'Cartographer of Stormlines',
+    description: 'Charts auroral slipstreams threading the Skybreak parapets.',
+    location: { x: 18, y: 14, region: 'Skybreak Ridge' },
+    dialogues: [
+      {
+        id: 'ila-greeting',
+        title: 'Stormline Briefing',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Ila sketches arcs of lightning across floating parchment.',
+          '"Slipstreams bend around your routes. Tell me where the clouds refused to part."'
+        ]
+      },
+      {
+        id: 'ila-starlit',
+        title: 'Starlit Drafting',
+        requires: ['starlit-bramble'],
+        lines: [
+          '"Those bramble spores glitter like storm seeds," Ila muses.',
+          '"I\'ll seed them along the ridge beacons so the marchers can read the winds."'
+        ]
+      }
+    ]
+  },
+  {
     id: 'carnival-quartermaster',
     name: 'Quartermaster Jansa',
     title: 'Carnival Quartermaster',
@@ -217,6 +245,117 @@ const NPCS = [
         lines: [
           'Celyne weaves tidelight threads through the currents.',
           '"With this caul, the deepways will glow soft enough for the miners to rest."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'hollow-gardener',
+    name: 'Gardener Thalen',
+    title: 'Whispering Arboretum Tender',
+    description: 'Cultivates groves that respond to spoken promises.',
+    location: { x: 32, y: 64, region: 'Whispering Arboretum' },
+    dialogues: [
+      {
+        id: 'thalen-greeting',
+        title: 'Soft Soil Exchange',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Thalen kneels to press their palm into humming loam.',
+          '"Every root listened when you crossed the Hollows. Stay and hear what they remember."'
+        ]
+      },
+      {
+        id: 'thalen-whisper',
+        title: 'Willow Promise',
+        requires: ['whisper-willow'],
+        lines: [
+          '"Your willow carried vows even I could not coax," Thalen says softly.',
+          '"Let\'s braid them into the arboretum ward so the sleepers feel safe."'
+        ]
+      },
+      {
+        id: 'thalen-gloomcap',
+        title: 'Gloomcap Balms',
+        requires: ['gloomcap-mantle'],
+        lines: [
+          'Thalen turns the mantle to catch stray moonlight.',
+          '"The miners will rest easier if we line the paths with this glow. Walk with me?"'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'forge-liaison',
+    name: 'Liaison Brakk',
+    title: 'Shatterlight Forge Envoy',
+    description: 'Keeps the forge embers synchronized with the Radiant Courts.',
+    location: { x: 66, y: 44, region: 'Shatterlight Forge' },
+    dialogues: [
+      {
+        id: 'brakk-greeting',
+        title: 'Forge Rapport',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Brakk taps a rhythm on their gauntlet to match the forge pulse.',
+          '"Report in, surveyor. The Courts rely on your cadence to temper their blades."'
+        ]
+      },
+      {
+        id: 'brakk-auric',
+        title: 'Auric Harmonization',
+        requires: ['auric-marrow'],
+        lines: [
+          '"Auric marrow runs hot. I\'ll temper the crucibles with it," Brakk nods.',
+          '"Stay close in case the resonance spikes again."'
+        ]
+      },
+      {
+        id: 'brakk-thistle',
+        title: 'Thistle Quench',
+        requires: ['shatterlight-thistle'],
+        lines: [
+          'Brakk crushes the thistle sparks into their gauntlet.',
+          '"This will keep the forge tempered while the Courts sleep. Your timing is precise."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'deepway-cartographer',
+    name: 'Cartographer Neer',
+    title: 'Dusk Tunnel Pathfinder',
+    description: 'Maps the glowless warrens beyond the Veiled Deepways.',
+    location: { x: 74, y: 76, region: 'Dusk Tunnels Fen' },
+    dialogues: [
+      {
+        id: 'neer-greeting',
+        title: 'Tunnel Orientation',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Neer unfurls a map stitched with phosphor thread.',
+          '"Your routes keep the tunnels from swallowing the caravans. Sit; let\'s revise them."'
+        ]
+      },
+      {
+        id: 'neer-tidelight',
+        title: 'Tidelight Charts',
+        requires: ['tidelight-caul'],
+        lines: [
+          '"The caul\'s glow will trace the safe hollows," Neer murmurs.',
+          '"I\'ll ink its rhythm into these depths before it fades."'
+        ]
+      },
+      {
+        id: 'neer-ember',
+        title: 'Ember Relay',
+        requires: ['wanderers-ember'],
+        lines: [
+          'Neer sets the ember into a lantern cage.',
+          '"Guides will trade for this light all winter. You always arrive when the dark thickens."'
         ]
       }
     ]
@@ -483,6 +622,11 @@ function projectIsoSize(width, height){
   };
 }
 
+function rectanglesOverlap(a, b){
+  if(!a || !b) return false;
+  return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+}
+
 function ensureMapStructure(){
   const map = document.querySelector('#map');
   if(!map) return null;
@@ -617,6 +761,57 @@ function renderMapMarkers(){
     layers.actors.innerHTML = '';
   }
   updateExplorerTrail();
+  requestAnimationFrame(resolveMapLabelCollisions);
+}
+
+function resolveMapLabelCollisions(){
+  const layers = ensureMapStructure();
+  if(!layers) return;
+  const zones = Array.from(layers.zones?.querySelectorAll('.map-zone') || []);
+  if(!zones.length) return;
+  const markerNodes = [
+    ...(layers.markers ? Array.from(layers.markers.querySelectorAll('.marker')) : []),
+    ...(layers.npcs ? Array.from(layers.npcs.querySelectorAll('.marker')) : []),
+  ];
+  if(!markerNodes.length) return;
+  const markerRects = markerNodes.map(el => el.getBoundingClientRect());
+  const orientationClasses = ['label-above', 'label-below'];
+  zones.forEach(zone => {
+    const label = zone.querySelector('.map-zone-label');
+    if(!label) return;
+    label.style.removeProperty('--label-shift-x');
+    label.style.removeProperty('--label-gap');
+    label.style.removeProperty('--label-shift-y');
+    const prefersAbove = zone.classList.contains('label-above');
+    const orientations = prefersAbove ? ['label-above', 'label-below'] : ['label-below', 'label-above'];
+    const gaps = [22, 28, 36];
+    const shifts = [0, -64, 64, -110, 110];
+    let placed = false;
+    for(const orientation of orientations){
+      orientationClasses.forEach(cls => zone.classList.remove(cls));
+      zone.classList.add(orientation);
+      for(const gap of gaps){
+        label.style.setProperty('--label-gap', `${gap}px`);
+        for(const shift of shifts){
+          label.style.setProperty('--label-shift-x', `${shift}px`);
+          const rect = label.getBoundingClientRect();
+          const overlaps = markerRects.some(markerRect => rectanglesOverlap(rect, markerRect));
+          if(!overlaps){
+            placed = true;
+            break;
+          }
+        }
+        if(placed) break;
+      }
+      if(placed) break;
+    }
+    if(!placed){
+      orientationClasses.forEach(cls => zone.classList.remove(cls));
+      zone.classList.add(orientations[0]);
+      label.style.setProperty('--label-gap', '36px');
+      label.style.setProperty('--label-shift-x', orientations[0] === 'label-above' ? '-110px' : '110px');
+    }
+  });
 }
 
 function normalize(s) { return (s||'').toLowerCase(); }
@@ -821,7 +1016,10 @@ async function main(){
 }
 
 window.addEventListener('hashchange', restoreFromHash);
-window.addEventListener('resize', ()=> updateMapCamera({ immediate: true }));
+window.addEventListener('resize', ()=>{
+  updateMapCamera({ immediate: true });
+  requestAnimationFrame(resolveMapLabelCollisions);
+});
 document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelector('#q').addEventListener('input', (e)=>{ state.q = e.target.value; applyFilters(); });
   document.querySelector('#close').addEventListener('click', closeModal);
