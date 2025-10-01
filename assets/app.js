@@ -9,6 +9,7 @@ const state = {
   explorerFrame: null,
   variantCycle: null,
   npcs: [],
+  selectedZone: null,
 };
 
 const MAP_WORLD_SCALE = 1.12;
@@ -816,6 +817,13 @@ function ensureMapStructure(){
   actorsLayer.className = 'map-layer map-layer-actors';
   world.append(ground, pathSvg, zonesLayer, markersLayer, npcLayer, actorsLayer);
   map.appendChild(viewport);
+  const detail = document.createElement('div');
+  detail.id = 'map-zone-detail';
+  detail.className = 'map-zone-detail';
+  detail.setAttribute('aria-live', 'polite');
+  detail.setAttribute('aria-atomic', 'true');
+  detail.hidden = true;
+  map.appendChild(detail);
   map._layers = {
     viewport,
     world,
@@ -825,6 +833,7 @@ function ensureMapStructure(){
     markers: markersLayer,
     npcs: npcLayer,
     actors: actorsLayer,
+    detail,
   };
   return map._layers;
 }
@@ -840,8 +849,10 @@ function renderMapZones(layer){
   MAP_ZONES.forEach(zone => {
     const zoneEl = document.createElement('div');
     const isActive = zone.regions.some(region => activeRegions.has(region));
+    const isSelected = state.selectedZone?.name === zone.name;
     const classes = ['map-zone'];
     if(isActive) classes.push('active');
+    if(isSelected) classes.push('selected');
     const vertical = zone.y > 55 ? 'label-above' : 'label-below';
     classes.push(vertical);
     zoneEl.className = classes.join(' ');
@@ -851,12 +862,65 @@ function renderMapZones(layer){
     zoneEl.style.top = `${top}%`;
     zoneEl.style.width = `${size.width}%`;
     zoneEl.style.height = `${size.height}%`;
+    zoneEl.dataset.zoneName = zone.name;
     const label = document.createElement('div');
     label.className = 'map-zone-label';
-    label.innerHTML = `<strong>${zone.name}</strong>${zone.description ? `<span>${zone.description}</span>` : ''}`;
+    label.setAttribute('role', 'button');
+    label.setAttribute('tabindex', '0');
+    label.setAttribute('aria-expanded', String(isSelected));
+    label.setAttribute('aria-controls', 'map-zone-detail');
+    label.setAttribute('aria-label', `${zone.name}. Select to view region details.`);
+    label.innerHTML = `<strong>${zone.name}</strong>`;
+    label.addEventListener('click', () => {
+      state.selectedZone = state.selectedZone === zone ? null : zone;
+      renderSelectedZoneState();
+    });
+    label.addEventListener('keydown', (event) => {
+      if(event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar'){
+        event.preventDefault();
+        state.selectedZone = state.selectedZone === zone ? null : zone;
+        renderSelectedZoneState();
+      }
+    });
     zoneEl.appendChild(label);
     layer.appendChild(zoneEl);
   });
+  renderSelectedZoneState();
+}
+
+function renderSelectedZoneState(){
+  const layers = ensureMapStructure();
+  if(!layers) return;
+  const zones = Array.from(layers.zones?.querySelectorAll('.map-zone') || []);
+  zones.forEach(zoneEl => {
+    const zoneName = zoneEl.dataset.zoneName;
+    const selected = state.selectedZone?.name === zoneName;
+    zoneEl.classList.toggle('selected', selected);
+    const label = zoneEl.querySelector('.map-zone-label');
+    if(label){
+      label.setAttribute('aria-expanded', String(selected));
+    }
+  });
+  renderMapZoneDetail();
+}
+
+function renderMapZoneDetail(){
+  const layers = ensureMapStructure();
+  if(!layers?.detail) return;
+  const detail = layers.detail;
+  const zone = state.selectedZone;
+  if(!zone){
+    detail.hidden = true;
+    detail.innerHTML = '';
+    return;
+  }
+  detail.hidden = false;
+  detail.innerHTML = '';
+  const title = document.createElement('h3');
+  title.textContent = zone.name;
+  const body = document.createElement('p');
+  body.textContent = zone.description;
+  detail.append(title, body);
 }
 
 function renderMapMarkers(){
