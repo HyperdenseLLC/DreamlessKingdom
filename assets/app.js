@@ -516,6 +516,743 @@ const NPCS = [
         ]
       }
     ]
+  },
+  {
+    id: 'village-oracle',
+    name: 'The Oracle',
+    title: 'Gate Seer',
+    description: 'A lyrical seer guarding the village gate and waiting for the Parade to return.',
+    location: { x: 42, y: 50, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'oracle-greeting',
+        title: 'Vision at the Gate',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Ah, traveler! I hope your journey here was kind," the Oracle smiles.',
+          '"If you can find the gate key, perhaps you can help us remember how to dream again."'
+        ]
+      },
+      {
+        id: 'oracle-parade-invite',
+        title: 'Parade Premonition',
+        requires: ['teal-crown-root'],
+        lines: [
+          'The Oracle gasps as the root you carry shimmers.',
+          '"That Crown Root gleams like the drums from my vision. When the Mayor calls, stand with me and we will open the gate."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'hollow-forager',
+    name: 'The Forager',
+    title: 'Dreamroot Gatherer',
+    description: 'A gentle villager who pieces together memories from scattered spores.',
+    location: { x: 36, y: 62, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'forager-welcome',
+        title: 'Quiet Greeting',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"A newcomer! Welcome to our quiet corner."',
+          '"I sometimes remember fragments of dreams. Would you help me search for them?"'
+        ]
+      },
+      {
+        id: 'forager-dreamroot',
+        title: 'Dreamroot Gratitude',
+        requires: ['dreamroot'],
+        lines: [
+          'The Forager cradles the Dreamroot you deliver.',
+          '"Thank you. Maybe dreams will come to me again—and to everyone you meet."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'forest-thornbinder',
+    name: 'Thornbinder',
+    title: 'Caretaker of Sparks',
+    description: 'Tends shimmering plants near the village gate and catalogues their secrets.',
+    location: { x: 38, y: 58, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'thornbinder-greeting',
+        title: 'Listening Garden',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"There are a lot of different plants around the village; if they sparkle and glow you can learn from them."',
+          '"The plants are listening. Tread gently."'
+        ]
+      },
+      {
+        id: 'thornbinder-secrets',
+        title: 'Glassfern Secrets',
+        requires: ['glassfern-scribes'],
+        lines: [
+          'Thornbinder traces the transparent fronds between their fingers.',
+          '"See? The scribes catch every whisper. Promise me you will archive what they reveal."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'village-murmurer',
+    name: 'Murmurer',
+    title: 'Choir Devotee',
+    description: 'A storyteller who reminds visitors who shaped the Dreamless Kingdom.',
+    location: { x: 40, y: 56, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'murmurer-greeting',
+        title: 'Soft Reminder',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"This world was made by Hyperdense!" the Murmurer proclaims.',
+          '"Be sure to press X near villagers and plants—the Cantor still hasn’t sung back, but we wait."'
+        ]
+      },
+      {
+        id: 'murmurer-chorus',
+        title: 'Chorus Whisper',
+        requires: ['chorus-spore-cluster'],
+        lines: [
+          'They inhale the spores you share and shiver.',
+          '"These echoes belong to the Choir. Keep them close until their hymn returns."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'market-shopper',
+    name: 'The Shopper',
+    title: 'Guarded Collector',
+    description: 'Hoarder of rare supplies who only trades when genuine need is shown.',
+    location: { x: 46, y: 66, region: 'Sunken Promenade' },
+    dialogues: [
+      {
+        id: 'shopper-suspicion',
+        title: 'Protective Hoard',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"You\'re here to take my treasures, aren’t you?" the Shopper narrows their eyes.',
+          '"If you need something, come with a purpose."'
+        ]
+      },
+      {
+        id: 'shopper-mint',
+        title: 'Mint Negotiation',
+        requires: ['mint-cluster'],
+        lines: [
+          'They weigh the mint in careful hands.',
+          '"Don’t tell the Caretaker I shared this sprig. Maybe sharing was worth it after all."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'perfumer-adele',
+    name: 'The Perfumer',
+    title: 'Scent Archivist',
+    description: 'Distils incense to draw forgotten creatures back toward the village.',
+    location: { x: 48, y: 64, region: 'Sunken Promenade' },
+    dialogues: [
+      {
+        id: 'perfumer-request',
+        title: 'Incense Plea',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"I\'ve nearly perfected an incense that attracts the village’s rarest creatures—but I\'ve run out of mint."',
+          '"Could you ask the Shopper for some?"'
+        ]
+      },
+      {
+        id: 'perfumer-incense',
+        title: 'Scent of Trust',
+        requires: ['mint-cluster'],
+        lines: [
+          'She inhales the minted bundle and smiles.',
+          '"The incense works beautifully thanks to you. I\'ll remember who helped the village breathe again."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'teacher-brin',
+    name: 'The Teacher',
+    title: 'Aspiring Smith',
+    description: 'A teacher dreaming of metalwork after years spent watching Hammer craft.',
+    location: { x: 52, y: 64, region: 'Sunken Promenade' },
+    dialogues: [
+      {
+        id: 'teacher-dream',
+        title: 'Trying New Tools',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"I’ve always wanted to try my hand at metalwork, but I never had the time," they admit.',
+          '"Maybe if I had a bit of copper I could start something small."'
+        ]
+      },
+      {
+        id: 'teacher-copper',
+        title: 'Copper Confidence',
+        requires: ['bio-copper-bar'],
+        lines: [
+          'They cradle the bio-copper bar like a precious text.',
+          '"This feels so exciting. Maybe this will be the start of something."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'almskeeper-iora',
+    name: 'The Almskeeper',
+    title: 'Keeper of Lost Manifestos',
+    description: 'Collects forbidden writings to challenge the Palace’s version of history.',
+    location: { x: 32, y: 46, region: 'Whispering Arboretum' },
+    dialogues: [
+      {
+        id: 'almskeeper-greeting',
+        title: 'Buried Truths',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Do you come bearing burdens? Or searching for those not yet yours?"',
+          '"Perhaps if we had the Lost Manifestos, we could make some changes within the palace."'
+        ]
+      },
+      {
+        id: 'almskeeper-manifesto',
+        title: 'Manifesto Restoration',
+        requires: ['archive-lichen-scroll'],
+        lines: [
+          'The Almskeeper studies the living scroll you recovered.',
+          '"This truth doesn’t need a sermon. It needs a vessel. Thank you for listening when others chose silence."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'visionary-kael',
+    name: 'The Visionary',
+    title: 'Disillusioned Architect',
+    description: 'A Palace architect who longs to build with hope instead of compliance.',
+    location: { x: 60, y: 44, region: 'Shatterlight Forge' },
+    dialogues: [
+      {
+        id: 'visionary-frustration',
+        title: 'Prefab Lament',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"It’s nothing. Deadlines. Prefab plans. No artistry. No soul."',
+          '"Somewhere I left blueprints that still listen before they speak."'
+        ]
+      },
+      {
+        id: 'visionary-mineral',
+        title: 'Sparkling Inspiration',
+        requires: ['sparkling-mineral'],
+        lines: [
+          'They hold the mineral to the light until it hums.',
+          '"Tell the Taskmaster I expect daring. With this spark we can build with hope again."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'mayor-lute',
+    name: 'The Mayor',
+    title: 'Parade Steward',
+    description: 'Coordinates the Parade while shielding the village from Palace oversight.',
+    location: { x: 44, y: 52, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'mayor-greeting',
+        title: 'Parade Preparations',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Preparations are nearly complete for the Parade," the Mayor beams.',
+          '"Hope, mostly. The Palace wants spectacle, but this memory is for us."'
+        ]
+      },
+      {
+        id: 'mayor-crown-root',
+        title: 'Gate Signal',
+        requires: ['teal-crown-root'],
+        lines: [
+          'They recognize the teal glow immediately.',
+          '"With that root we can begin the Parade right away. Will you stand with us when the gate opens?"'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'alchemist-vessa',
+    name: 'The Alchemist',
+    title: 'Fog Distiller',
+    description: 'Studies the creeping fog and bottles memories before they fade.',
+    location: { x: 46, y: 46, region: "Alchemists' Span" },
+    dialogues: [
+      {
+        id: 'alchemist-request',
+        title: 'Honeyglobe Appeal',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"The fog started flowing a few years back. If I only had a Honeyglobe Capsule I could brew a memory potion."',
+          '"Better to bottle a nightmare than to let it loose."'
+        ]
+      },
+      {
+        id: 'alchemist-clarity',
+        title: 'Golden Cap Refinement',
+        requires: ['golden-cap-sphere'],
+        lines: [
+          'She swirls the sphere until the fog clears from her eyes.',
+          '"Thanks to you I\'m out of this mind fog. Maybe I can do something about the environmental fog too."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'harvester-ryx',
+    name: 'The Harvester',
+    title: 'Spore Field Tender',
+    description: 'Cuts only ripened fungi and listens for the stories each harvest carries.',
+    location: { x: 34, y: 66, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'harvester-intro',
+        title: 'Beauty in Decay',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"There’s beauty in decay, if you know how to cut it clean."',
+          '"Everything we grow remembers. Even what we bury feeds something."'
+        ]
+      },
+      {
+        id: 'harvester-emberleaf',
+        title: 'Emberleaf Gratitude',
+        requires: ['emberleaf-vines'],
+        lines: [
+          'Ryx braids the emberleaf into a glowing wreath.',
+          '"You harvested fullness, not volume. Take this blessing of warmth along your route."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'dewkeeper-sol',
+    name: 'The Dewkeeper',
+    title: 'Mist Listener',
+    description: 'Half plant, half caretaker, safeguarding the morning’s breath on the moss.',
+    location: { x: 30, y: 58, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'dewkeeper-greeting',
+        title: 'Hushed Steps',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Hush… walk softer here. The morning’s breath still clings to the moss."',
+          '"Not entirely a plant, but enough to dream like one."'
+        ]
+      },
+      {
+        id: 'dewkeeper-gratitude',
+        title: 'Aperture Blessing',
+        requires: ['carapace-aperture'],
+        lines: [
+          'They study the aperture you present with reverence.',
+          '"I’m so glad you helped the Mothwing. May this dew you carry now keep your journey bright."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'torchbearer-elan',
+    name: 'The Torchbearer',
+    title: 'Tunnel Guide',
+    description: 'Keeps the tunnel torches lit so travelers don’t forget themselves in the dark.',
+    location: { x: 62, y: 66, region: 'Deep Mines' },
+    dialogues: [
+      {
+        id: 'torchbearer-warning',
+        title: 'Hold the Flame',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Keep to the lit paths. The shadows twist stranger than they seem."',
+          '"Someone has to hold the flame, even if it only pushes the dark back a little."'
+        ]
+      },
+      {
+        id: 'torchbearer-lantern',
+        title: 'Crown Root Favor',
+        requires: ['ambercrest-lantern'],
+        lines: [
+          'They cradle the lantern and breathe easier.',
+          '"With this Ambercrest glow I can rest for a moment. Take this Crown Root to the Mayor—tell them the tunnels approve."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sporeborn-twins',
+    name: 'Sporeborn Duo',
+    title: 'Dream Photographers',
+    description: 'Two friends chronicling beauty so their shared memories do not fade.',
+    location: { x: 58, y: 60, region: 'Deep Mines' },
+    dialogues: [
+      {
+        id: 'sporeborn-greeting',
+        title: 'Shared Lens',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"This place is really pretty, don’t you think?" one asks while snapping a picture.',
+          '"My friend lost their camera, though. If only we had another."'
+        ]
+      },
+      {
+        id: 'sporeborn-camera',
+        title: 'Camera Returned',
+        requires: ['lost-camera'],
+        lines: [
+          'They clutch the recovered camera with delight.',
+          '"We’ll take pictures of everything now! Here—share this Sunspore Eye so the light travels with you."'
+        ]
+      },
+      {
+        id: 'sporeborn-gift',
+        title: 'Sunspore Snapshot',
+        requires: ['sunspore-eye'],
+        lines: [
+          'The duo compare the lens you carry with their prints.',
+          '"Keep that eye open. Every path deserves to be remembered."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'excavator-june',
+    name: 'The Excavator',
+    title: 'Echo Listener',
+    description: 'Remains in the mines to hear what the earth remembers after the crews were dismissed.',
+    location: { x: 64, y: 72, region: 'Deep Mines' },
+    dialogues: [
+      {
+        id: 'excavator-greeting',
+        title: 'Loose Earth',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Keep your helmet low. The earth here is loose—memories shift and settle when you least expect it."',
+          '"If you’re not afraid of ghosts, maybe you’d help me chase a few out."'
+        ]
+      },
+      {
+        id: 'excavator-reward',
+        title: 'Echo Token',
+        requires: ['sparkling-mineral'],
+        lines: [
+          'They feel the ground settle as the mineral hums.',
+          '"You found them. Here—take this token, a story etched in stone."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'veilspinner-sera',
+    name: 'The Veilspinner',
+    title: 'Shadow Weaver',
+    description: 'Maps hidden figures in the Dark Forest and mends the veil between memories.',
+    location: { x: 28, y: 48, region: 'Whispering Arboretum' },
+    dialogues: [
+      {
+        id: 'veilspinner-offer',
+        title: 'Woven Challenge',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Ah, a stranger caught at the edge of my weaving. Do you have a steady hand and sharper eye?"',
+          '"If you can find those I’ve lost, I’ll see that your journey isn’t forgotten."'
+        ]
+      },
+      {
+        id: 'veilspinner-reward',
+        title: 'Memento Threads',
+        requires: ['blooming-robes'],
+        lines: [
+          'She drapes the robes across her loom and smiles.',
+          '"You found them all—very few manage that. May this token remind you that what’s hidden can return to the light."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'devout-keeper',
+    name: 'The Devout',
+    title: 'Shrine Watcher',
+    description: 'Keeps vigil beside a quiet shrine, waiting for dreams to return.',
+    location: { x: 30, y: 44, region: 'Whispering Arboretum' },
+    dialogues: [
+      {
+        id: 'devout-greeting',
+        title: 'Silent Shrine',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"This shrine once sang with dreams. Now it chokes on silence. Still... I wait."',
+          '"Devotion isn’t about reward. It’s about holding space so something lost knows where to return."'
+        ]
+      },
+      {
+        id: 'devout-manifesto',
+        title: 'Token of Faith',
+        requires: ['archive-lichen-scroll'],
+        lines: [
+          'They accept the living script with awe.',
+          '"Here, take this token—perhaps it will awaken the shrine and the Sleeper will hear us again."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'gossamer-weaver',
+    name: 'Gossamer',
+    title: 'Thread Archivist',
+    description: 'Weaves fragile memory threads through the Dark Forest canopy.',
+    location: { x: 32, y: 50, region: 'Whispering Arboretum' },
+    dialogues: [
+      {
+        id: 'gossamer-greeting',
+        title: 'Fragile Threads',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Careful where you step. The threads are fragile—and not all of them were spun by me."',
+          '"I try to hold the past together, even if the weave unravels the moment you blink."'
+        ]
+      },
+      {
+        id: 'gossamer-vessel',
+        title: 'Stillmoon Trade',
+        requires: ['stillmoon-vessel'],
+        lines: [
+          'She turns the vessel in the dim light.',
+          '"This may help me hold the past together. Take my old lens—its focus belongs with you now."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'gatherer-nim',
+    name: 'The Gatherer',
+    title: 'Memory Hoarder',
+    description: 'Collects abandoned curios so their stories aren’t erased by the Palace.',
+    location: { x: 60, y: 68, region: 'Deep Mines' },
+    dialogues: [
+      {
+        id: 'gatherer-greeting',
+        title: 'Worth of Remnants',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"I collect what others leave behind. Shells, buttons, fragments of song—anything that still remembers being wanted."',
+          '"The Palace calls it hoarding. I call it remembering."'
+        ]
+      },
+      {
+        id: 'gatherer-key',
+        title: 'Crimson Bargain',
+        requires: ['crimson-dome-key'],
+        lines: [
+          'They trade the key for something wrapped in cloth.',
+          '"I found this old camera around the mines. Take it, and promise you’ll keep its memories alive."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'pollinator-sae',
+    name: 'The Pollinator',
+    title: 'Swarm Guide',
+    description: 'Listens to pollinating custodians that carry memories between blooms.',
+    location: { x: 68, y: 56, region: 'Veiled Colonnade' },
+    dialogues: [
+      {
+        id: 'pollinator-greeting',
+        title: 'Shimmering Calm',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Shhh—don’t startle them. They’ve just begun to settle."',
+          '"They’re not bugs. Carriers. Custodians of pollen and memory."'
+        ]
+      },
+      {
+        id: 'pollinator-lens',
+        title: 'Lens Exchange',
+        requires: ['umbral-iris-lens'],
+        lines: [
+          'They fit the lens atop a humming flower.',
+          '"You’re so generous! Tell the Manager the plants should be ready for the Parade."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'gardener-elm',
+    name: 'The Gardener',
+    title: 'Memory Tiller',
+    description: 'Keeps beds planted for ceremonies of remembrance and resistance.',
+    location: { x: 34, y: 60, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'gardener-greeting',
+        title: 'Memory Beds',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Mind your step. These beds aren’t just for food—they’re for remembering."',
+          '"Each row was planted for someone. The soil holds stories if you’re willing to listen."'
+        ]
+      },
+      {
+        id: 'gardener-salve',
+        title: 'Relieved Roots',
+        requires: ['bottled-salve'],
+        lines: [
+          'They massage the salve into aching hands.',
+          '"Amazing—this is just what my joints need. Take this Ambercrest Lantern to the torchbearer."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'mothwing-kera',
+    name: 'The Mothwing',
+    title: 'Light Scout',
+    description: 'Studies light that bends around hidden paths between dreams.',
+    location: { x: 32, y: 56, region: 'Verdant Hollows' },
+    dialogues: [
+      {
+        id: 'mothwing-greeting',
+        title: 'Bent Light',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"You ever seen light bend? Not just shimmer—but bow, as if it’s ashamed of what it reveals?"',
+          '"All good things are dangerous. That’s why we hide them."'
+        ]
+      },
+      {
+        id: 'mothwing-aperture',
+        title: 'Shared Aperture',
+        requires: ['carapace-aperture'],
+        lines: [
+          'She recognizes the aperture from her dreams.',
+          '"Incredible! I’ll tell the Dewkeeper you helped me. Follow the light where it leads."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'husktender-vale',
+    name: 'The Husktender',
+    title: 'Hide-and-Seek Host',
+    description: 'Organises games in the Dark Forest to keep friendships from fading.',
+    location: { x: 26, y: 54, region: 'Whispering Arboretum' },
+    dialogues: [
+      {
+        id: 'husktender-invite',
+        title: 'Seeking Help',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Do you think you could help me? First you’ll need to prove yourself—find all my friends hiding in the clearing."',
+          '"If you find my friend I’ll take you to the Parade with me!"'
+        ]
+      },
+      {
+        id: 'husktender-grateful',
+        title: 'Reward of Trust',
+        requires: ['sunspore-eye'],
+        lines: [
+          'They admire the glinting eye you now carry.',
+          '"You did it! You found them all. I can trust you with finding my friend now."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'maestro-lyr',
+    name: 'The Maestro',
+    title: 'Parade Conductor',
+    description: 'Rehearses tirelessly so the Parade sounds perfect when the gate opens.',
+    location: { x: 48, y: 50, region: 'Gilt Palace Conservatory' },
+    dialogues: [
+      {
+        id: 'maestro-greeting',
+        title: 'Perfect Cadence',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Shhh! Listen. The Parade must be perfect—every note practiced to the edge of collapse."',
+          '"Not yet. The gate remains shut, and so the symphony remains unheard."'
+        ]
+      },
+      {
+        id: 'maestro-inspiration',
+        title: 'Gifted Arrangements',
+        requires: ['golden-cap-sphere', 'lilac-crown-terrarium'],
+        lines: [
+          'They pair the sphere with the terrarium until the miniature floats sway in time.',
+          '"I can’t believe you found them! Take my most valued possession—let the others know music still cares for them."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'florist-ren',
+    name: 'The Florist',
+    title: 'Wild Bed Curator',
+    description: 'Cultivates conversational blooms that bite back when ignored.',
+    location: { x: 34, y: 50, region: 'Whispering Arboretum' },
+    dialogues: [
+      {
+        id: 'florist-greeting',
+        title: 'Careful Footing',
+        fallback: true,
+        requires: [],
+        lines: [
+          '"Welcome—mind your step. The petals bruise easily, and some of them bite back."',
+          '"I used to keep things tidy. Now I let the wildness speak—it’s not chaos, it’s memory made visible."'
+        ]
+      },
+      {
+        id: 'florist-umbrella',
+        title: 'Shaded Beds',
+        requires: ['glassmoss-umbrella'],
+        lines: [
+          'They unfurl the umbrella over a temperamental bed.',
+          '"This is perfect. I hear the Fungalmonger took something from the Gatherer—maybe you can mend that rift next."'
+        ]
+      }
+    ]
   }
 ];
 

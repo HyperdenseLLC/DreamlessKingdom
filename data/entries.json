@@ -147,5 +147,134 @@
       "category": "Plant",
       "location": { "x": 58, "y": 18, "region": "Shatterlight Forge" }
     }
+    ,
+    {
+      "id": "mint-cluster",
+      "title": "Mint Cluster",
+      "summary": "Sharp, dew-fed sprigs cultivated beneath gauze hoods. The Perfumer steeps them into incense that coaxes shy familiars back to the market square.",
+      "tag": "Aromatic",
+      "category": "Ingredient",
+      "location": { "x": 48, "y": 66, "region": "Sunken Promenade" }
+    },
+    {
+      "id": "sparkling-mineral",
+      "title": "Sparkling Mineral",
+      "summary": "A faceted stone that thrums softly when held near unfinished blueprints. Visionaries insist it remembers every structure raised above the deep tunnels.",
+      "tag": "Geologic",
+      "category": "Mineral",
+      "location": { "x": 70, "y": 68, "region": "Veiled Deepways" }
+    },
+    {
+      "id": "golden-cap-sphere",
+      "title": "Golden Cap Sphere",
+      "summary": "A sealed orb of condensed mushroom fog. Alchemists use it to bottle a moment of clarity before the palace bells resume their din.",
+      "tag": "Alchemy",
+      "category": "Relic",
+      "location": { "x": 44, "y": 46, "region": "Alchemists' Span" }
+    },
+    {
+      "id": "teal-crown-root",
+      "title": "Teal Crown Root",
+      "summary": "Ribboned roots braided for parade regalia. Torchbearers trade them to the Mayor to signal that the gate may open at last.",
+      "tag": "Festival",
+      "category": "Plant",
+      "location": { "x": 56, "y": 62, "region": "Carnival Quarter Greenways" }
+    },
+    {
+      "id": "sunspore-eye",
+      "title": "Sunspore Eye",
+      "summary": "A polished lens grown from festival spores. It stores snapshots of joy until a friend needs reminding that light still lingers underground.",
+      "tag": "Artifact",
+      "category": "Curio",
+      "location": { "x": 62, "y": 34, "region": "Resonant Plaza" }
+    },
+    {
+      "id": "ambercrest-lantern",
+      "title": "Ambercrest Lantern",
+      "summary": "An amber-caged lantern tuned for fog-choked tunnels. Torchbearers beg gardeners for one more flask of its patient light.",
+      "tag": "Utility",
+      "category": "Device",
+      "location": { "x": 50, "y": 64, "region": "Carnival Quarter Greenways" }
+    },
+    {
+      "id": "lost-camera",
+      "title": "Lost Camera",
+      "summary": "A battered camera wrapped in moss. The Sporeborn believe it can capture a dream before the Palace edits the memory away.",
+      "tag": "Memory",
+      "category": "Curio",
+      "location": { "x": 60, "y": 72, "region": "Deep Mines" }
+    },
+    {
+      "id": "blooming-robes",
+      "title": "Blooming Robes",
+      "summary": "Choir vestments stitched with living mycelium. Fungalmongers claim each bloom still hums with the verses it once absorbed.",
+      "tag": "Attire",
+      "category": "Textile",
+      "location": { "x": 34, "y": 52, "region": "Whispering Arboretum" }
+    },
+    {
+      "id": "umbral-iris-lens",
+      "title": "Umbral Iris Lens",
+      "summary": "A petal-thin lens that filters shadow pollen into luminous bands. Pollinators rely on it to choreograph their swarm ballets.",
+      "tag": "Optic",
+      "category": "Device",
+      "location": { "x": 68, "y": 58, "region": "Veiled Colonnade" }
+    },
+    {
+      "id": "bio-copper-bar",
+      "title": "Bio-Copper Bar",
+      "summary": "A copper ingot laced with fungal veins. Apprentices smith it to learn how metal can flex without breaking a dream.",
+      "tag": "Material",
+      "category": "Metal",
+      "location": { "x": 58, "y": 60, "region": "Shatterlight Forge" }
+    },
+    {
+      "id": "stillmoon-vessel",
+      "title": "Stillmoon Vessel",
+      "summary": "A glassy amphora that catches moonlight before it touches the ground. Gossamer weavers anchor frayed memories with its glow.",
+      "tag": "Memory",
+      "category": "Relic",
+      "location": { "x": 66, "y": 52, "region": "Veiled Colonnade" }
+    },
+    {
+      "id": "crimson-dome-key",
+      "title": "Crimson Dome Key",
+      "summary": "A coral-red key recovered from the mines. Gatherers swear it unlocks storerooms the Palace meant to forget.",
+      "tag": "Key",
+      "category": "Artifact",
+      "location": { "x": 64, "y": 70, "region": "Deep Mines" }
+    },
+    {
+      "id": "bottled-salve",
+      "title": "Bottled Salve",
+      "summary": "Herbal balm distilled for gardeners who refuse to rest. A single drop soothes joints strained by coaxing stubborn blooms.",
+      "tag": "Remedy",
+      "category": "Potion",
+      "location": { "x": 46, "y": 64, "region": "Verdant Hollows" }
+    },
+    {
+      "id": "carapace-aperture",
+      "title": "Carapace Aperture",
+      "summary": "An articulated shell ring that bends light around the wearer. Mothwing scouts use it to slip between dream-thinned paths.",
+      "tag": "Optic",
+      "category": "Relic",
+      "location": { "x": 58, "y": 56, "region": "Verdant Hollows" }
+    },
+    {
+      "id": "lilac-crown-terrarium",
+      "title": "Lilac Crown Terrarium",
+      "summary": "A stage-top terrarium holding miniature parade floats. The Maestro listens to its rustling fronds for new arrangements.",
+      "tag": "Artifice",
+      "category": "Curio",
+      "location": { "x": 52, "y": 48, "region": "Gilt Palace Conservatory" }
+    },
+    {
+      "id": "glassmoss-umbrella",
+      "title": "Glassmoss Umbrella",
+      "summary": "A translucent canopy grown from moss that deflects both rain and harsh sun. Florists cherish it when taming temperamental beds.",
+      "tag": "Utility",
+      "category": "Tool",
+      "location": { "x": 36, "y": 48, "region": "Whispering Arboretum" }
+    }
   ]
 }
