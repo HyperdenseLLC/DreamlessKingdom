@@ -70,11 +70,12 @@ a {
 }
 
 .container {
+  --container-padding: clamp(18px, 4vw, 40px);
   position: relative;
   z-index: 2;
   max-width: 1360px;
   margin: 0 auto;
-  padding: 32px 24px 96px;
+  padding: 32px var(--container-padding) 96px;
 }
 
 .hero {
@@ -311,8 +312,20 @@ button:hover, .badge:hover {
 }
 
 .map-atlas {
+  --map-edge: clamp(20px, 6vw, 120px);
   display: grid;
   gap: 32px;
+  grid-template-areas:
+    "map"
+    "observer";
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-inline: var(--map-edge);
+}
+
+.map-panel {
+  grid-area: map;
+  margin-inline: calc(-1 * var(--map-edge));
 }
 
 .map-panel {
@@ -321,6 +334,12 @@ button:hover, .badge:hover {
   border-radius: 26px;
   padding: 20px 24px 26px;
   box-shadow: 0 22px 45px rgba(0, 0, 0, 0.45);
+}
+
+.observer-panel {
+  grid-area: observer;
+  justify-self: stretch;
+  width: min(100%, 520px);
 }
 
 .map-header {
@@ -552,21 +571,21 @@ button:hover, .badge:hover {
 
 .map-zone-label {
   position: absolute;
-  --label-gap: 18px;
-  background: rgba(12, 17, 32, 0.9);
+  --label-gap: 16px;
+  background: rgba(12, 17, 32, 0.88);
   backdrop-filter: blur(6px);
-  border-radius: 14px;
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  padding: 6px 12px;
   text-align: center;
   font-family: 'Inconsolata', monospace;
-  font-size: clamp(0.56rem, 1vw, 0.72rem);
+  font-size: clamp(0.5rem, 0.9vw, 0.68rem);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
   z-index: 8;
-  min-width: clamp(110px, 14vw, 200px);
+  min-width: clamp(90px, 12vw, 180px);
   pointer-events: none;
   transform: translate(calc(-50% + var(--label-shift-x, 0px)), var(--label-shift-y, 0px));
 }
@@ -574,7 +593,7 @@ button:hover, .badge:hover {
 .map-zone-label strong {
   display: block;
   font-family: 'Crimson Text', serif;
-  font-size: clamp(0.68rem, 1.4vw, 0.95rem);
+  font-size: clamp(0.62rem, 1.2vw, 0.88rem);
   letter-spacing: 0.06em;
   color: var(--accent-gold);
   text-transform: uppercase;
@@ -583,11 +602,11 @@ button:hover, .badge:hover {
 
 .map-zone-label span {
   display: block;
-  margin-top: 4px;
-  font-size: clamp(0.5rem, 0.95vw, 0.68rem);
+  margin-top: 2px;
+  font-size: clamp(0.46rem, 0.8vw, 0.6rem);
   letter-spacing: 0.04em;
   text-transform: none;
-  color: rgba(220, 214, 245, 0.58);
+  color: rgba(220, 214, 245, 0.6);
 }
 
 .map-zone.label-below .map-zone-label {
@@ -623,10 +642,10 @@ button:hover, .badge:hover {
 .marker {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: clamp(7px, 0.85vw, 12px);
+  width: clamp(6px, 0.7vw, 10px);
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border: 1.3px solid rgba(255, 255, 255, 0.82);
   background: var(--accent-gold);
   box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.6);
   animation: pulse 3s infinite;
@@ -638,8 +657,8 @@ button:hover, .badge:hover {
 
 .marker span {
   position: absolute;
-  width: 36%;
-  height: 36%;
+  width: 38%;
+  height: 38%;
   border-radius: 50%;
   background: rgba(18, 22, 43, 0.9);
 }
@@ -1287,15 +1306,26 @@ header .right {
 
 @media (min-width: 960px) {
   .map-atlas {
-    grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
-    align-items: start;
+    gap: 40px;
+  }
+
+  .map-panel {
+    border-radius: 30px;
+  }
+
+  .observer-panel {
+    justify-self: end;
+    margin-right: calc(var(--map-edge) - var(--container-padding, 24px));
   }
 }
 
 @media (min-width: 1360px) {
   .map-atlas {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: 48px;
+  }
+
+  .map-panel {
+    border-radius: 34px;
   }
 }
 
