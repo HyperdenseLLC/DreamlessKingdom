@@ -20,6 +20,7 @@
       <button id="tab-atlas" class="tab active" data-section="atlas" type="button" role="tab" aria-selected="true">Atlas Overlay</button>
       <button id="tab-overview" class="tab" data-section="overview" type="button" role="tab" aria-controls="overview" aria-selected="false">Archive Overview</button>
       <button id="tab-catalogue" class="tab" data-section="catalogue" type="button" role="tab" aria-selected="false">Specimen Catalogue</button>
+      <button id="tab-npcs" class="tab" data-section="npcs" type="button" role="tab" aria-controls="npcs" aria-selected="false">NPC Compendium</button>
     </nav>
 
     <main>
@@ -39,66 +40,74 @@
               <span class="legend-item"><span class="legend-dot dim"></span> Outside current filters</span>
             </div>
           </section>
+          <div class="atlas-overview-grid">
+            <section class="observer-panel" aria-live="polite" aria-label="Automated expedition tracker">
+              <div class="panel-header">
+                <h2>Expedition Observer</h2>
+                <p>A lone surveyor roams the Dreamless Kingdom, collecting flora samples for the archive. Watch their progress and browse the catalogue at your leisure.</p>
+              </div>
+              <div class="observer-body">
+                <div class="observer-stats">
+                  <div class="tally">Samples secured: <strong id="explorer-count">0</strong></div>
+                  <div id="explorer-status" class="small muted">Surveyor calibrating instruments…</div>
+                </div>
+                <div class="observer-scene" aria-live="polite">
+                  <div class="scene-label">Field conditions</div>
+                  <div id="observer-scene" class="scene-status muted">No anomalies detected.</div>
+                </div>
+                <ol id="explorer-log" class="observer-log" aria-label="Recent specimens catalogued"></ol>
+              </div>
+            </section>
 
-          <section class="observer-panel" aria-live="polite" aria-label="Automated expedition tracker">
-            <div class="panel-header">
-              <h2>Expedition Observer</h2>
-              <p>A lone surveyor roams the Dreamless Kingdom, collecting flora samples for the archive. Watch their progress and browse the catalogue at your leisure.</p>
-            </div>
-            <div class="observer-body">
-              <div class="observer-stats">
-                <div class="tally">Samples secured: <strong id="explorer-count">0</strong></div>
-                <div id="explorer-status" class="small muted">Surveyor calibrating instruments…</div>
+            <section id="overview" class="overview-inline" role="region" aria-labelledby="tab-overview">
+              <h2>Archive Overview</h2>
+              <p class="section-intro">The flora of the Dreamless Kingdom remembers a time before the Palace rationed wonder. Spores weave memories between villages, and every bloom is a witness. This archive keeps their stories in motion while a lone surveyor charts the forgotten growth.</p>
+
+              <div class="timeline">
+                <article class="timeline-item">
+                  <div class="timeline-date">Before the Silence</div>
+                  <h3>Dream Gardens Flourish</h3>
+                  <p>Collective gardens coaxed new species from shared reverie. These specimens shaped districts, guiding pilgrim paths by colour and scent.</p>
+                </article>
+                <article class="timeline-item">
+                  <div class="timeline-date">The Extraction Age</div>
+                  <h3>Palace Catalogues Desire</h3>
+                  <p>Expeditions stripped the woods for proprietary spores. Villagers hid what they could, swearing botanists to secrecy as memory-taxation began.</p>
+                </article>
+                <article class="timeline-item">
+                  <div class="timeline-date">Surveyor's Watch</div>
+                  <h3>A Living Archive</h3>
+                  <p>The lone observer now transcribes blooms in transit, syncing each discovery to this ledger. Your search reshapes where they wander next.</p>
+                </article>
               </div>
-              <div class="observer-scene" aria-live="polite">
-                <div class="scene-label">Field conditions</div>
-                <div id="observer-scene" class="scene-status muted">No anomalies detected.</div>
+
+              <div class="dialogue-box">
+                <div class="dialogue-character">The Oracle</div>
+                <div class="dialogue-text">"I saw someone tend the spores instead of hoarding them. Help the surveyor keep the archive breathing and the Kingdom might remember how to dream again."</div>
               </div>
-              <ol id="explorer-log" class="observer-log" aria-label="Recent specimens catalogued"></ol>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
-
-        <section id="overview" class="overview-inline" role="region" aria-labelledby="tab-overview">
-          <h2>Archive Overview</h2>
-          <p class="section-intro">The flora of the Dreamless Kingdom remembers a time before the Palace rationed wonder. Spores weave memories between villages, and every bloom is a witness. This archive keeps their stories in motion while a lone surveyor charts the forgotten growth.</p>
-
-          <div class="timeline">
-            <article class="timeline-item">
-              <div class="timeline-date">Before the Silence</div>
-              <h3>Dream Gardens Flourish</h3>
-              <p>Collective gardens coaxed new species from shared reverie. These specimens shaped districts, guiding pilgrim paths by colour and scent.</p>
-            </article>
-            <article class="timeline-item">
-              <div class="timeline-date">The Extraction Age</div>
-              <h3>Palace Catalogues Desire</h3>
-              <p>Expeditions stripped the woods for proprietary spores. Villagers hid what they could, swearing botanists to secrecy as memory-taxation began.</p>
-            </article>
-            <article class="timeline-item">
-              <div class="timeline-date">Surveyor's Watch</div>
-              <h3>A Living Archive</h3>
-              <p>The lone observer now transcribes blooms in transit, syncing each discovery to this ledger. Your search reshapes where they wander next.</p>
-            </article>
-          </div>
-
-          <div class="dialogue-box">
-            <div class="dialogue-character">The Oracle</div>
-            <div class="dialogue-text">"I saw someone tend the spores instead of hoarding them. Help the surveyor keep the archive breathing and the Kingdom might remember how to dream again."</div>
-          </div>
-        </section>
       </section>
 
       <section id="catalogue" class="content-section" role="tabpanel" aria-labelledby="tab-catalogue">
         <div class="catalogue-toolbar">
           <div class="controls">
             <input id="q" type="search" placeholder="Search titles and summaries… (press /)" />
-            <button id="export" title="Export current view as JSON">Export JSON</button>
           </div>
           <div class="controls" id="tags" role="group" aria-label="Filter by tag"></div>
           <div class="stats">Showing <span id="count">0/0</span></div>
         </div>
 
         <section id="grid" class="grid" aria-live="polite"></section>
+      </section>
+
+      <section id="npcs" class="content-section" role="tabpanel" aria-labelledby="tab-npcs">
+        <header class="section-header">
+          <h2>NPC Network</h2>
+          <p class="section-intro">Meet the Dreamless Kingdom's trusted contacts. Status updates as the expedition unlocks new exchanges.</p>
+        </header>
+        <div id="npc-directory" class="npc-directory" aria-live="polite"></div>
       </section>
     </main>
 

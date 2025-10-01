@@ -1844,6 +1844,109 @@ function renderGrid() {
   grid.appendChild(frag);
 }
 
+function renderNpcDirectory(){
+  const container = document.querySelector('#npc-directory');
+  if(!container) return;
+  container.innerHTML = '';
+  const npcs = Array.isArray(state.npcs) ? state.npcs : [];
+  if(!npcs.length){
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = 'No contacts catalogued yet.';
+    container.appendChild(empty);
+    return;
+  }
+  const entries = Array.isArray(state.entries) ? state.entries : [];
+  const entriesById = new Map(entries.map(entry => [entry.id, entry]));
+  const explorer = state.explorer;
+  const frag = document.createDocumentFragment();
+  npcs.forEach(npc => {
+    const card = document.createElement('article');
+    card.className = 'npc-card';
+    const hasNew = hasNewNpcDialogue(npc);
+    if(hasNew) card.classList.add('npc-card-new');
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    const labelParts = [npc.name];
+    if(npc.title) labelParts.push(npc.title);
+    card.setAttribute('aria-label', labelParts.join(' — '));
+
+    const header = document.createElement('div');
+    header.className = 'npc-card-header';
+    header.innerHTML = `
+      <div>
+        <h3>${npc.name}</h3>
+        ${npc.title ? `<p class="npc-title">${npc.title}</p>` : ''}
+      </div>
+      ${hasNew ? '<span class="npc-card-status">New exchange</span>' : ''}
+    `;
+    card.appendChild(header);
+
+    if(npc.description){
+      const description = document.createElement('p');
+      description.className = 'npc-description';
+      description.textContent = npc.description;
+      card.appendChild(description);
+    }
+
+    const metaWrap = document.createElement('div');
+    metaWrap.className = 'npc-meta';
+    if(npc.location?.region){
+      const region = document.createElement('span');
+      region.className = 'npc-region';
+      region.textContent = `Stationed at ${npc.location.region}`;
+      metaWrap.appendChild(region);
+    }
+
+    const dialogues = Array.isArray(npc.dialogues) ? npc.dialogues : [];
+    const unlockedCount = dialogues.reduce((count, dialogue) => count + (npcDialogueUnlocked(dialogue, explorer) ? 1 : 0), 0);
+    const progress = document.createElement('span');
+    progress.className = 'npc-location';
+    progress.textContent = `Dialogues ${unlockedCount}/${dialogues.length}`;
+    metaWrap.appendChild(progress);
+    card.appendChild(metaWrap);
+
+    if(dialogues.length){
+      const list = document.createElement('ul');
+      list.className = 'npc-dialogue-list compact';
+      dialogues.forEach(dialogue => {
+        const meta = getNpcDialogueMeta(npc, dialogue, entriesById);
+        const li = document.createElement('li');
+        const classes = ['npc-dialogue'];
+        classes.push(meta.unlocked ? 'unlocked' : 'locked');
+        if(meta.unlocked && !meta.seen && !meta.fallback){
+          classes.push('new');
+        }
+        li.className = classes.join(' ');
+        li.innerHTML = `
+          <strong>${dialogue.title}</strong>
+          <span class="preview">${meta.preview}</span>
+          <span class="status">${meta.status}</span>
+        `;
+        list.appendChild(li);
+      });
+      card.appendChild(list);
+    }
+
+    const hint = document.createElement('p');
+    hint.className = 'small muted';
+    hint.textContent = 'Click or press Enter to open the full dossier.';
+    card.appendChild(hint);
+
+    card.addEventListener('click', ()=>openNpcModal(npc));
+    card.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        openNpcModal(npc);
+      }
+    });
+
+    frag.appendChild(card);
+  });
+
+  container.appendChild(frag);
+}
+
 function renderTags(){
   const bar = document.querySelector('#tags');
   bar.innerHTML = '';
@@ -1896,28 +1999,56 @@ function openModal(e){
   location.hash = `#/item/${e.id}`;
 }
 
+function getNpcDialogueMeta(npc, dialogue, entriesById){
+  const ex = state.explorer;
+  if(!dialogue){
+    return {
+      key: npcDialogueKey(npc, {}),
+      unlocked: false,
+      preview: 'Exchange unavailable.',
+      status: 'No dialogue available.',
+      seen: false,
+      fallback: false,
+    };
+  }
+  const key = npcDialogueKey(npc, dialogue);
+  const requires = Array.isArray(dialogue.requires) ? dialogue.requires : [];
+  const requirementTitles = requires.map(id => entriesById.get(id)?.title || id);
+  const requirementText = requirementTitles.length ? `Requires: ${requirementTitles.join(', ')}` : 'Always available';
+  const unlocked = npcDialogueUnlocked(dialogue, ex);
+  const preview = unlocked ? (dialogue.lines?.[0] || 'Conversation ready to share.') : requirementText;
+  const seen = !!ex?.dialogueSeen?.has(key);
+  const status = unlocked
+    ? ((seen || dialogue.fallback) ? 'Exchange recorded' : 'Awaiting exchange')
+    : 'Collect the listed specimens to unlock.';
+  return {
+    key,
+    unlocked,
+    preview,
+    status,
+    seen,
+    fallback: !!dialogue.fallback,
+  };
+}
+
 function openNpcModal(npc){
   if(!npc) return;
   const modal = document.querySelector('#modal');
   const body = modal.querySelector('.body');
-  const ex = state.explorer;
-  const seen = ex?.dialogueSeen || new Set();
   const entriesById = new Map(state.entries.map(entry => [entry.id, entry]));
   const dialogues = Array.isArray(npc.dialogues) ? npc.dialogues : [];
   const listHtml = dialogues.map(dialogue => {
-    const key = npcDialogueKey(npc, dialogue);
-    const unlocked = npcDialogueUnlocked(dialogue, ex);
-    const requirementTitles = (dialogue.requires || []).map(id => entriesById.get(id)?.title || id);
-    const requirementText = requirementTitles.length ? `Requires: ${requirementTitles.join(', ')}` : 'Always available';
-    const preview = unlocked ? (dialogue.lines?.[0] || 'Conversation ready to share.') : requirementText;
-    const status = unlocked ? (seen.has(key) || dialogue.fallback ? 'Exchange recorded' : 'Awaiting exchange') : 'Collect the listed specimens to unlock.';
+    const meta = getNpcDialogueMeta(npc, dialogue, entriesById);
     const classes = ['npc-dialogue'];
-    classes.push(unlocked ? 'unlocked' : 'locked');
+    classes.push(meta.unlocked ? 'unlocked' : 'locked');
+    if(meta.unlocked && !meta.seen && !meta.fallback){
+      classes.push('new');
+    }
     return `
       <li class="${classes.join(' ')}">
         <strong>${dialogue.title}</strong>
-        <span class="preview">${preview}</span>
-        <span class="status">${status}</span>
+        <span class="preview">${meta.preview}</span>
+        <span class="status">${meta.status}</span>
       </li>
     `;
   }).join('');
@@ -1968,6 +2099,7 @@ async function main(){
   renderVariantCycle();
   renderTags();
   applyFilters();
+  renderNpcDirectory();
   restoreFromHash();
   initExplorer();
 }
@@ -1981,14 +2113,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelector('#q').addEventListener('input', (e)=>{ state.q = e.target.value; applyFilters(); });
   document.querySelector('#close').addEventListener('click', closeModal);
   document.querySelector('#modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal(); });
-  document.querySelector('#export').addEventListener('click', ()=>{
-    const blob = new Blob([JSON.stringify({world:'Dreamless Kingdom',entries:state.filtered}, null, 2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'dreamless-kingdom-entries.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  });
   main();
 });
 
@@ -2229,6 +2353,7 @@ function renderExplorerUI(){
   renderSceneEvent();
   renderExplorerCount();
   renderExplorerLog();
+  renderNpcDirectory();
   renderMapMarkers();
 }
 
