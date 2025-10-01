@@ -208,6 +208,15 @@ const NPCS = [
           '"Those bramble spores glitter like storm seeds," Ila muses.',
           '"I\'ll seed them along the ridge beacons so the marchers can read the winds."'
         ]
+      },
+      {
+        id: 'ila-umbral',
+        title: 'Umbral Drift Survey',
+        requires: ['umbral-mistle'],
+        lines: [
+          'Ila traces a finger along the mistle filaments you share.',
+          '"These hold the map of every shadow gale. I\'ll chart safe passage through the night squalls."'
+        ]
       }
     ]
   },
@@ -1440,16 +1449,60 @@ function selectNpcDialogue(npc, { preview = false } = {}){
   const dialogues = Array.isArray(npc.dialogues) ? npc.dialogues : [];
   const available = dialogues.filter(d => npcDialogueUnlocked(d, ex));
   if(!available.length) return null;
-  const fallback = available.find(d => d.fallback) || available[available.length - 1];
   const seen = ex.dialogueSeen;
-  let choice = available.find(d => !seen.has(npcDialogueKey(npc, d)));
-  if(!choice) choice = fallback;
-  const key = npcDialogueKey(npc, choice);
-  const isNew = !seen.has(key) && !choice?.fallback;
+  const routeCollected = ex.routeCollected || new Set();
+  const routeSequence = Array.isArray(ex.routeSequence) ? ex.routeSequence : [];
+  const lastCollectedId = ex.lastCollectedId;
+  const scored = available.map(dialogue => {
+    const key = npcDialogueKey(npc, dialogue);
+    const requires = Array.isArray(dialogue.requires) ? dialogue.requires : [];
+    const matchesLast = lastCollectedId && routeCollected.has(lastCollectedId) && requires.includes(lastCollectedId) ? 1 : 0;
+    const routeMatches = requires.reduce((count, id) => count + (routeCollected.has(id) ? 1 : 0), 0);
+    let recentIndex = null;
+    for(let i = routeSequence.length - 1; i >= 0; i--){
+      if(requires.includes(routeSequence[i])){
+        recentIndex = routeSequence.length - 1 - i;
+        break;
+      }
+    }
+    return {
+      dialogue,
+      key,
+      seen: seen.has(key),
+      fallback: !!dialogue.fallback,
+      matchesLast,
+      routeMatches,
+      requiresCount: requires.length,
+      recentIndex,
+    };
+  });
+  const fallback = scored.find(item => item.fallback) || scored[scored.length - 1];
+  const pickBest = (candidates)=>{
+    if(!candidates.length) return null;
+    return candidates.slice().sort((a, b)=>{
+      if(b.matchesLast !== a.matchesLast) return b.matchesLast - a.matchesLast;
+      if(b.routeMatches !== a.routeMatches) return b.routeMatches - a.routeMatches;
+      const aRecent = a.recentIndex == null ? Number.POSITIVE_INFINITY : a.recentIndex;
+      const bRecent = b.recentIndex == null ? Number.POSITIVE_INFINITY : b.recentIndex;
+      if(aRecent !== bRecent) return aRecent - bRecent;
+      if(b.requiresCount !== a.requiresCount) return b.requiresCount - a.requiresCount;
+      if(a.fallback !== b.fallback) return a.fallback ? 1 : -1;
+      if(a.seen !== b.seen) return a.seen ? 1 : -1;
+      return dialogues.indexOf(a.dialogue) - dialogues.indexOf(b.dialogue);
+    })[0];
+  };
+  let choiceEntry = pickBest(scored.filter(item => !item.seen && (item.matchesLast || item.routeMatches > 0)));
+  if(!choiceEntry) choiceEntry = pickBest(scored.filter(item => !item.seen && !item.fallback));
+  if(!choiceEntry) choiceEntry = pickBest(scored.filter(item => item.matchesLast || item.routeMatches > 0));
+  if(!choiceEntry) choiceEntry = pickBest(scored);
+  if(!choiceEntry) choiceEntry = fallback || null;
+  if(!choiceEntry) return null;
+  const { dialogue, key } = choiceEntry;
+  const isNew = !choiceEntry.seen && !choiceEntry.fallback;
   if(!preview){
     seen.add(key);
   }
-  return { npc, dialogue: choice, key, isNew };
+  return { npc, dialogue, key, isNew };
 }
 
 function hasNewNpcDialogue(npc){
@@ -1546,6 +1599,8 @@ function handleExplorerCollect(entry){
   const isNew = !ex.collected.has(entry.id);
   recordExplorerPosition();
   ex.collected.add(entry.id);
+  if(ex.routeCollected) ex.routeCollected.add(entry.id);
+  if(Array.isArray(ex.routeSequence)) ex.routeSequence.push(entry.id);
   ex.totalCollected += 1;
   ex.log.unshift({
     type: 'collection',
@@ -1563,6 +1618,7 @@ function handleExplorerCollect(entry){
   ex.phase = 'collecting';
   ex.lastCollectedTitle = entry.title;
   ex.lastCollectedVariant = entry.variant || null;
+  ex.lastCollectedId = entry.id;
   ex.target = null;
   renderExplorerUI();
   if(isNew){
@@ -1599,6 +1655,8 @@ function handleExplorerNpc(npc){
   });
   ex.log = ex.log.slice(0, 10);
   ex.target = null;
+  if(ex.routeCollected) ex.routeCollected.clear();
+  if(Array.isArray(ex.routeSequence)) ex.routeSequence.length = 0;
   renderExplorerUI();
 }
 
@@ -1691,6 +1749,8 @@ function initExplorer(){
     baseSpeed: 5,
     speed: 5,
     collected: new Set(),
+    routeCollected: new Set(),
+    routeSequence: [],
     log: [],
     totalCollected: 0,
     phase: 'idle',
@@ -1698,6 +1758,7 @@ function initExplorer(){
     pauseDuration: 0,
     lastCollectedTitle: '',
     lastCollectedVariant: null,
+    lastCollectedId: null,
     element: null,
     lastTick: null,
     path: [],
