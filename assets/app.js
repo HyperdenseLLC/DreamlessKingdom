@@ -8,7 +8,10 @@ const state = {
   explorer: null,
   explorerFrame: null,
   variantCycle: null,
+  npcs: [],
 };
+
+const MAP_WORLD_SCALE = 1.55;
 
 const ISO_PROJECTION = (()=>{
   const angle = Math.PI / 6;
@@ -103,6 +106,120 @@ const MAP_ZONES = [
     width: 30,
     height: 24,
     regions: ["Wanderer's Causeway", 'Archive Warrens']
+  }
+];
+
+const NPCS = [
+  {
+    id: 'archivist-sel',
+    name: 'Archivist Sel',
+    title: 'Archivist of Whispered Threads',
+    description: 'Keeps the Choir\'s last resonant ledgers and trades in memories etched onto light.',
+    location: { x: 26, y: 26, region: 'Choir Ruins' },
+    dialogues: [
+      {
+        id: 'sel-greeting',
+        title: 'Soft Greeting',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Sel nods toward the floating notes above the Choir ruins.',
+          '"The archive hums louder each time you pass. Keep listening for the quiet crescendos."'
+        ]
+      },
+      {
+        id: 'sel-dreamroot',
+        title: 'Dreamroot Resonance',
+        requires: ['dreamroot'],
+        lines: [
+          '"Dreamroot sap carries lullabies from before the Silence," Sel whispers.',
+          '"I can braid its cadence into the choir stones so sleepers hear home again."'
+        ]
+      },
+      {
+        id: 'sel-glassfern',
+        title: 'Glassfern Correspondence',
+        requires: ['glassfern-scribes'],
+        lines: [
+          'Sel spreads transparent fronds across the ledger.',
+          '"These scribes will archive every whispered treaty you rescued from the Hollows."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'carnival-quartermaster',
+    name: 'Quartermaster Jansa',
+    title: 'Carnival Quartermaster',
+    description: 'Directs festival caravans and keeps the ember routes aglow.',
+    location: { x: 58, y: 74, region: 'Carnival Quarter Greenways' },
+    dialogues: [
+      {
+        id: 'jansa-greeting',
+        title: 'Festival Banter',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Jansa flips a coin of cooled emberlight.',
+          '"Keep that survey gear limber. The parade shifts routes whenever your trail does."'
+        ]
+      },
+      {
+        id: 'jansa-emberleaf',
+        title: 'Emberleaf Logistics',
+        requires: ['emberleaf-vines'],
+        lines: [
+          '"Those emberleaf braids you gathered kept three floats from freezing," Jansa grins.',
+          '"Take this glow-map—more dancers want your routes."'
+        ]
+      },
+      {
+        id: 'jansa-wanderers',
+        title: 'Wanderer\'s Ember Exchange',
+        requires: ['wanderers-ember'],
+        lines: [
+          'Jansa cups the wanderer\'s ember until it steadies.',
+          '"We\'ll send that spark down quiet alleys so the ration marshals never notice."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'tideglass-warden',
+    name: 'Warden Celyne',
+    title: 'Tideglass Warden',
+    description: 'Monitors the undersea currents that lap at the kingdom\'s deepest vaults.',
+    location: { x: 84, y: 46, region: 'Undersea Observatory' },
+    dialogues: [
+      {
+        id: 'celyne-greeting',
+        title: 'Brine Salute',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Celyne offers a vial of glowing brine.',
+          '"Let the tides steady your stride. The observatory charts every ripple you spark."'
+        ]
+      },
+      {
+        id: 'celyne-tidal',
+        title: 'Tidal Iris Synchrony',
+        requires: ['tidal-iris'],
+        lines: [
+          '"The tidal irises still mirror the undersea pulse," Celyne murmurs.',
+          '"I\'ll tune them beside the observatory lens so sailors can dream-steer again."'
+        ]
+      },
+      {
+        id: 'celyne-tidelight',
+        title: 'Tidelight Infusion',
+        requires: ['tidelight-caul'],
+        lines: [
+          'Celyne weaves tidelight threads through the currents.',
+          '"With this caul, the deepways will glow soft enough for the miners to rest."'
+        ]
+      }
+    ]
   }
 ];
 
@@ -371,6 +488,12 @@ function ensureMapStructure(){
   if(!map) return null;
   if(map._layers) return map._layers;
   map.innerHTML = '';
+  const viewport = document.createElement('div');
+  viewport.className = 'map-viewport';
+  const world = document.createElement('div');
+  world.className = 'map-world';
+  world.style.setProperty('--map-world-size', `${(MAP_WORLD_SCALE * 100).toFixed(0)}%`);
+  viewport.appendChild(world);
   const ground = document.createElement('div');
   ground.className = 'map-ground';
   ground.setAttribute('aria-hidden', 'true');
@@ -387,14 +510,20 @@ function ensureMapStructure(){
   zonesLayer.className = 'map-layer map-layer-zones';
   const markersLayer = document.createElement('div');
   markersLayer.className = 'map-layer map-layer-markers';
+  const npcLayer = document.createElement('div');
+  npcLayer.className = 'map-layer map-layer-npcs';
   const actorsLayer = document.createElement('div');
   actorsLayer.className = 'map-layer map-layer-actors';
-  map.append(ground, pathSvg, zonesLayer, markersLayer, actorsLayer);
+  world.append(ground, pathSvg, zonesLayer, markersLayer, npcLayer, actorsLayer);
+  map.appendChild(viewport);
   map._layers = {
+    viewport,
+    world,
     ground,
     path: { svg: pathSvg, line: pathLine },
     zones: zonesLayer,
     markers: markersLayer,
+    npcs: npcLayer,
     actors: actorsLayer,
   };
   return map._layers;
@@ -435,9 +564,10 @@ function renderMapMarkers(){
   if(!map) return;
   const layers = ensureMapStructure();
   if(!layers) return;
-  const { zones, markers } = layers;
+  const { zones, markers, npcs } = layers;
   renderMapZones(zones);
   markers.innerHTML = '';
+  if(npcs) npcs.innerHTML = '';
   const filteredIds = new Set(state.filtered.map(e=>e.id));
   state.entries.filter(e=>e.location).forEach(e=>{
     const marker = document.createElement('button');
@@ -459,6 +589,28 @@ function renderMapMarkers(){
     marker.addEventListener('click', ()=>openModal(e));
     markers.appendChild(marker);
   });
+  if(npcs){
+    state.npcs.forEach(npc=>{
+      if(!npc?.location) return;
+      const marker = document.createElement('button');
+      const classes = ['marker', 'character'];
+      classes.push('npc');
+      const hasNewDialogue = hasNewNpcDialogue(npc);
+      if(hasNewDialogue) classes.push('new-dialogue');
+      if(state.explorer?.target?.type === 'npc' && state.explorer?.target?.npc?.id === npc.id){
+        classes.push('target');
+      }
+      marker.className = classes.join(' ');
+      const pos = projectIsoPoint(npc.location.x, npc.location.y);
+      marker.style.left = `${pos.left}%`;
+      marker.style.top = `${pos.top}%`;
+      marker.setAttribute('aria-label', `${npc.name} — ${npc.title}`);
+      marker.title = `${npc.name}\n${npc.title}${hasNewDialogue ? '\nNew exchange available' : ''}`;
+      marker.innerHTML = '<span></span>';
+      marker.addEventListener('click', ()=>openNpcModal(npc));
+      npcs.appendChild(marker);
+    });
+  }
   if(state.explorer){
     renderExplorerElement();
   } else {
@@ -592,10 +744,51 @@ function openModal(e){
   location.hash = `#/item/${e.id}`;
 }
 
+function openNpcModal(npc){
+  if(!npc) return;
+  const modal = document.querySelector('#modal');
+  const body = modal.querySelector('.body');
+  const ex = state.explorer;
+  const seen = ex?.dialogueSeen || new Set();
+  const entriesById = new Map(state.entries.map(entry => [entry.id, entry]));
+  const dialogues = Array.isArray(npc.dialogues) ? npc.dialogues : [];
+  const listHtml = dialogues.map(dialogue => {
+    const key = npcDialogueKey(npc, dialogue);
+    const unlocked = npcDialogueUnlocked(dialogue, ex);
+    const requirementTitles = (dialogue.requires || []).map(id => entriesById.get(id)?.title || id);
+    const requirementText = requirementTitles.length ? `Requires: ${requirementTitles.join(', ')}` : 'Always available';
+    const preview = unlocked ? (dialogue.lines?.[0] || 'Conversation ready to share.') : requirementText;
+    const status = unlocked ? (seen.has(key) || dialogue.fallback ? 'Exchange recorded' : 'Awaiting exchange') : 'Collect the listed specimens to unlock.';
+    const classes = ['npc-dialogue'];
+    classes.push(unlocked ? 'unlocked' : 'locked');
+    return `
+      <li class="${classes.join(' ')}">
+        <strong>${dialogue.title}</strong>
+        <span class="preview">${preview}</span>
+        <span class="status">${status}</span>
+      </li>
+    `;
+  }).join('');
+  body.innerHTML = `
+    <div class="npc-profile">
+      <h2>${npc.name}</h2>
+      <p class="small">${npc.title || ''}</p>
+      ${npc.description ? `<p class="muted">${npc.description}</p>` : ''}
+      ${npc.location?.region ? `<p class="small muted">Stationed at ${npc.location.region}</p>` : ''}
+    </div>
+    <hr/>
+    <h3>Conversation Threads</h3>
+    <ul class="npc-dialogue-list">${listHtml}</ul>
+    <div class="small muted">Meet this contact in the field to hear their full remarks.</div>
+  `;
+  modal.classList.add('open');
+  location.hash = `#/npc/${npc.id}`;
+}
+
 function closeModal(){
   const modal = document.querySelector('#modal');
   modal.classList.remove('open');
-  if(location.hash.startsWith('#/item/')){
+  if(location.hash.startsWith('#/item/') || location.hash.startsWith('#/npc/')){
     history.pushState('', document.title, window.location.pathname + window.location.search);
   }
 }
@@ -606,6 +799,10 @@ function restoreFromHash(){
     const id = parts[2];
     const e = state.entries.find(e=>e.id===id);
     if(e) openModal(e);
+  } else if(parts.length===3 && parts[1]==='npc'){
+    const id = parts[2];
+    const npc = state.npcs.find(n=>n.id===id);
+    if(npc) openNpcModal(npc);
   }
 }
 
@@ -613,6 +810,7 @@ async function main(){
   const res = await fetch('data/entries.json');
   const j = await res.json();
   state.entries = j.entries;
+  state.npcs = NPCS.map(npc => ({ ...npc }));
   state.variantCycle = applyVariantProfiles(state.entries);
   state.tags = new Set(state.entries.map(e=>e.tag));
   renderVariantCycle();
@@ -623,6 +821,7 @@ async function main(){
 }
 
 window.addEventListener('hashchange', restoreFromHash);
+window.addEventListener('resize', ()=> updateMapCamera({ immediate: true }));
 document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelector('#q').addEventListener('input', (e)=>{ state.q = e.target.value; applyFilters(); });
   document.querySelector('#close').addEventListener('click', closeModal);
@@ -664,6 +863,38 @@ function renderExplorerElement(){
   const pos = projectIsoPoint(state.explorer.x, state.explorer.y);
   el.style.left = `${pos.left}%`;
   el.style.top = `${pos.top}%`;
+  updateMapCamera();
+}
+
+function updateMapCamera({ immediate = false } = {}){
+  const ex = state.explorer;
+  if(!ex) return;
+  const layers = ensureMapStructure();
+  if(!layers?.viewport || !layers?.world) return;
+  const viewport = layers.viewport;
+  const world = layers.world;
+  const viewportWidth = viewport.clientWidth;
+  const viewportHeight = viewport.clientHeight;
+  const worldWidth = world.clientWidth;
+  const worldHeight = world.clientHeight;
+  if(!viewportWidth || !viewportHeight || !worldWidth || !worldHeight) return;
+  const pos = projectIsoPoint(ex.x, ex.y);
+  const targetX = (pos.left / 100) * worldWidth;
+  const targetY = (pos.top / 100) * worldHeight;
+  const offsetX = viewportWidth / 2 - targetX;
+  const offsetY = viewportHeight / 2 - targetY;
+  const maxOffsetX = Math.max(0, (worldWidth - viewportWidth) / 2);
+  const maxOffsetY = Math.max(0, (worldHeight - viewportHeight) / 2);
+  const clampedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX));
+  const clampedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY));
+  if(immediate){
+    world.classList.add('no-transition');
+  }
+  world.style.setProperty('--map-offset-x', `${clampedX}px`);
+  world.style.setProperty('--map-offset-y', `${clampedY}px`);
+  if(immediate){
+    requestAnimationFrame(()=> world.classList.remove('no-transition'));
+  }
 }
 
 function updateExplorerTrail(){
@@ -709,15 +940,23 @@ function renderExplorerStatus(){
   if(!el || !state.explorer) return;
   const ex = state.explorer;
   let text = 'Surveyor calibrating instruments…';
-  if(ex.phase === 'travel' && ex.target?.entry){
-    const entry = ex.target.entry;
-    const region = entry.location?.region || 'Unknown region';
-    const variant = entry.variant;
-    const detailParts = [];
-    if(variant?.rarity) detailParts.push(variant.rarity);
-    if(variant?.condition) detailParts.push(variant.condition);
-    const detail = detailParts.length ? ` — ${detailParts.join(' • ')}` : '';
-    text = `En route to ${entry.title}${detail} (${region})`;
+  if(ex.phase === 'travel' && ex.target){
+    if(ex.target.type === 'npc' && ex.target.npc){
+      const npc = ex.target.npc;
+      const region = npc.location?.region || 'Unknown region';
+      const hasNew = hasNewNpcDialogue(npc);
+      const detail = hasNew ? ' — new exchange' : '';
+      text = `Visiting ${npc.name}${detail} (${region})`;
+    } else if(ex.target.entry){
+      const entry = ex.target.entry;
+      const region = entry.location?.region || 'Unknown region';
+      const variant = entry.variant;
+      const detailParts = [];
+      if(variant?.rarity) detailParts.push(variant.rarity);
+      if(variant?.condition) detailParts.push(variant.condition);
+      const detail = detailParts.length ? ` — ${detailParts.join(' • ')}` : '';
+      text = `En route to ${entry.title}${detail} (${region})`;
+    }
   } else if(ex.phase === 'collecting'){
     const remaining = Math.max(0, ex.pauseTimer || 0);
     const suffix = remaining > 0 ? ` (${Math.ceil(remaining)}s)` : '';
@@ -727,6 +966,12 @@ function renderExplorerStatus(){
     if(variant?.condition) detailParts.push(variant.condition);
     const detail = detailParts.length ? ` — ${detailParts.join(' • ')}` : '';
     text = `Cataloguing ${ex.lastCollectedTitle}${detail}${suffix}`;
+  } else if(ex.phase === 'conversing'){
+    const remaining = Math.max(0, ex.pauseTimer || 0);
+    const suffix = remaining > 0 ? ` (${Math.ceil(remaining)}s)` : '';
+    const npc = ex.currentNpc;
+    const dialogueTitle = ex.currentDialogue?.title ? ` — ${ex.currentDialogue.title}` : '';
+    text = npc ? `Trading notes with ${npc.name}${dialogueTitle}${suffix}` : `Trading notes${suffix}`;
   } else if(ex.phase === 'idle'){
     text = 'Surveyor selecting the next waypoint…';
   }
@@ -747,13 +992,33 @@ function renderExplorerLog(){
   state.explorer.log.forEach(item=>{
     const li = document.createElement('li');
     const time = item.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-    const noteParts = [];
-    if(item.rarity) noteParts.push(item.rarity);
-    if(item.condition) noteParts.push(item.condition);
-    if(item.mutation) noteParts.push(item.mutation);
-    if(item.quirk) noteParts.push(item.quirk);
-    const note = noteParts.length ? `<span class="log-note">${noteParts.join(' • ')}</span>` : '';
-    li.innerHTML = `<span class="log-time">${time}</span><span class="log-title">${item.title}</span>${note}`;
+    if(item.type === 'dialogue'){
+      li.classList.add('dialogue');
+      if(item.isNew) li.classList.add('new');
+      const lines = Array.isArray(item.lines) ? item.lines : [item.lines].filter(Boolean);
+      const dialogueHtml = lines.map(line=>`<span>${line}</span>`).join('');
+      const subtitle = item.dialogueTitle ? `<span class="log-subtitle">${item.dialogueTitle}</span>` : '';
+      const note = item.isNew ? '<span class="log-note">New insight</span>' : '';
+      li.innerHTML = `
+        <div class="log-header">
+          <span class="log-time">${time}</span>
+          <div class="log-title-group">
+            <span class="log-title">${item.title}</span>
+            ${subtitle}
+          </div>
+          ${note}
+        </div>
+        <div class="log-dialogue">${dialogueHtml}</div>
+      `;
+    } else {
+      const noteParts = [];
+      if(item.rarity) noteParts.push(item.rarity);
+      if(item.condition) noteParts.push(item.condition);
+      if(item.mutation) noteParts.push(item.mutation);
+      if(item.quirk) noteParts.push(item.quirk);
+      const note = noteParts.length ? `<span class="log-note">${noteParts.join(' • ')}</span>` : '';
+      li.innerHTML = `<span class="log-time">${time}</span><span class="log-title">${item.title}</span>${note}`;
+    }
     frag.appendChild(li);
   });
   if(!state.explorer.log.length){
@@ -773,21 +1038,75 @@ function renderExplorerUI(){
   renderMapMarkers();
 }
 
+function npcDialogueKey(npc, dialogue){
+  return `${npc?.id || 'npc'}:${dialogue?.id || 'dialogue'}`;
+}
+
+function npcDialogueUnlocked(dialogue, explorer){
+  if(!dialogue) return false;
+  const needs = dialogue.requires || [];
+  if(!needs.length) return true;
+  if(!explorer) return false;
+  return needs.every(id => explorer.collected.has(id));
+}
+
+function selectNpcDialogue(npc, { preview = false } = {}){
+  const ex = state.explorer;
+  if(!ex || !npc) return null;
+  const dialogues = Array.isArray(npc.dialogues) ? npc.dialogues : [];
+  const available = dialogues.filter(d => npcDialogueUnlocked(d, ex));
+  if(!available.length) return null;
+  const fallback = available.find(d => d.fallback) || available[available.length - 1];
+  const seen = ex.dialogueSeen;
+  let choice = available.find(d => !seen.has(npcDialogueKey(npc, d)));
+  if(!choice) choice = fallback;
+  const key = npcDialogueKey(npc, choice);
+  const isNew = !seen.has(key) && !choice?.fallback;
+  if(!preview){
+    seen.add(key);
+  }
+  return { npc, dialogue: choice, key, isNew };
+}
+
+function hasNewNpcDialogue(npc){
+  const ex = state.explorer;
+  if(!ex) return false;
+  const result = selectNpcDialogue(npc, { preview: true });
+  return !!(result && result.isNew);
+}
+
 function pickExplorerTarget(){
   const ex = state.explorer;
   if(!ex) return;
-  const candidates = state.entries.filter(e=>e.location);
-  if(!candidates.length){
-    ex.phase = 'idle';
-    ex.target = null;
-    renderExplorerStatus();
-    return;
+  const entryCandidates = state.entries.filter(e=>e.location);
+  const npcCandidates = Array.isArray(state.npcs) ? state.npcs.filter(n=>n.location) : [];
+  const unvisitedEntries = entryCandidates.filter(e=>!ex.collected.has(e.id));
+  const entryPool = unvisitedEntries.length ? unvisitedEntries : entryCandidates;
+  const npcsWithNew = npcCandidates.filter(hasNewNpcDialogue);
+  let nextTarget = null;
+  if(npcsWithNew.length){
+    const npc = npcsWithNew[Math.floor(Math.random() * npcsWithNew.length)];
+    nextTarget = { type: 'npc', npc };
+  } else if(entryPool.length){
+    if(npcCandidates.length && Math.random() < 0.22){
+      const npc = npcCandidates[Math.floor(Math.random() * npcCandidates.length)];
+      nextTarget = { type: 'npc', npc };
+    } else {
+      const entry = entryPool[Math.floor(Math.random() * entryPool.length)];
+      nextTarget = { type: 'entry', entry };
+    }
+  } else if(npcCandidates.length){
+    const npc = npcCandidates[Math.floor(Math.random() * npcCandidates.length)];
+    nextTarget = { type: 'npc', npc };
   }
-  const unvisited = candidates.filter(e=>!ex.collected.has(e.id));
-  const pool = unvisited.length ? unvisited : candidates;
-  const next = pool[Math.floor(Math.random()*pool.length)];
-  ex.target = { entry: next };
-  ex.phase = 'travel';
+
+  if(nextTarget){
+    ex.target = nextTarget;
+    ex.phase = 'travel';
+  } else {
+    ex.target = null;
+    ex.phase = 'idle';
+  }
   renderExplorerStatus();
   renderMapMarkers();
 }
@@ -800,6 +1119,7 @@ function handleExplorerCollect(entry){
   ex.collected.add(entry.id);
   ex.totalCollected += 1;
   ex.log.unshift({
+    type: 'collection',
     id: entry.id,
     title: entry.title,
     time: new Date(),
@@ -821,6 +1141,38 @@ function handleExplorerCollect(entry){
   }
 }
 
+function handleExplorerNpc(npc){
+  const ex = state.explorer;
+  if(!ex || !npc) return;
+  recordExplorerPosition();
+  const selection = selectNpcDialogue(npc) || {};
+  const dialogue = selection.dialogue || null;
+  const lines = Array.isArray(dialogue?.lines) && dialogue.lines.length ? dialogue.lines.slice(0) : [`${npc.name} shares a quiet exchange.`];
+  const duration = Math.max(2.6, lines.length * 1.4);
+  ex.pauseTimer = duration;
+  ex.pauseDuration = duration;
+  ex.phase = 'conversing';
+  ex.currentNpc = npc;
+  ex.currentDialogue = {
+    id: selection.key || null,
+    title: dialogue?.title || '',
+    lines,
+    isNew: !!selection.isNew,
+  };
+  ex.log.unshift({
+    type: 'dialogue',
+    id: selection.key || `npc:${npc.id}:${Date.now()}`,
+    title: npc.name,
+    dialogueTitle: dialogue?.title || '',
+    time: new Date(),
+    lines,
+    isNew: !!selection.isNew,
+  });
+  ex.log = ex.log.slice(0, 8);
+  ex.target = null;
+  renderExplorerUI();
+}
+
 function explorerStep(ts){
   const ex = state.explorer;
   if(!ex) return;
@@ -833,6 +1185,8 @@ function explorerStep(ts){
     renderExplorerStatus();
     if(ex.pauseTimer === 0){
       ex.phase = 'idle';
+      ex.currentNpc = null;
+      ex.currentDialogue = null;
       renderExplorerStatus();
       pickExplorerTarget();
     }
@@ -841,16 +1195,22 @@ function explorerStep(ts){
       pickExplorerTarget();
     }
     const targetEntry = ex.target?.entry;
-    if(targetEntry?.location){
-      const tx = targetEntry.location.x;
-      const ty = targetEntry.location.y;
+    const targetNpc = ex.target?.npc;
+    const destination = targetEntry?.location || targetNpc?.location;
+    if(destination){
+      const tx = destination.x;
+      const ty = destination.y;
       const dx = tx - ex.x;
       const dy = ty - ex.y;
       const dist = Math.hypot(dx, dy);
       if(dist < 0.4){
         ex.x = tx;
         ex.y = ty;
-        handleExplorerCollect(targetEntry);
+        if(targetEntry){
+          handleExplorerCollect(targetEntry);
+        } else if(targetNpc){
+          handleExplorerNpc(targetNpc);
+        }
       } else if(dist > 0){
         const move = ex.speed * dt;
         if(move >= dist){
@@ -890,9 +1250,13 @@ function initExplorer(){
     element: null,
     lastTick: null,
     path: [],
+    dialogueSeen: new Set(),
+    currentNpc: null,
+    currentDialogue: null,
   };
   ensureExplorerElement();
   recordExplorerPosition(true);
+  updateMapCamera({ immediate: true });
   renderExplorerUI();
   state.explorerFrame = requestAnimationFrame(explorerStep);
 }
