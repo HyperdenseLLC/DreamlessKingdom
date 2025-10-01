@@ -17,40 +17,13 @@
     </header>
 
     <nav class="nav-tabs" role="tablist" aria-label="Archive sections">
-      <button id="tab-overview" class="tab active" data-section="overview" type="button" role="tab" aria-selected="true">Overview</button>
-      <button id="tab-atlas" class="tab" data-section="atlas" type="button" role="tab" aria-selected="false">Atlas Overlay</button>
+      <button id="tab-atlas" class="tab active" data-section="atlas" type="button" role="tab" aria-selected="true">Atlas Overlay</button>
+      <button id="tab-overview" class="tab" data-section="overview" type="button" role="tab" aria-controls="overview" aria-selected="false">Archive Overview</button>
       <button id="tab-catalogue" class="tab" data-section="catalogue" type="button" role="tab" aria-selected="false">Specimen Catalogue</button>
     </nav>
 
     <main>
-      <section id="overview" class="content-section active" role="tabpanel" aria-labelledby="tab-overview">
-        <p class="section-intro">The flora of the Dreamless Kingdom remembers a time before the Palace rationed wonder. Spores weave memories between villages, and every bloom is a witness. This archive keeps their stories in motion while a lone surveyor charts the forgotten growth.</p>
-
-        <div class="timeline">
-          <article class="timeline-item">
-            <div class="timeline-date">Before the Silence</div>
-            <h3>Dream Gardens Flourish</h3>
-            <p>Collective gardens coaxed new species from shared reverie. These specimens shaped districts, guiding pilgrim paths by colour and scent.</p>
-          </article>
-          <article class="timeline-item">
-            <div class="timeline-date">The Extraction Age</div>
-            <h3>Palace Catalogues Desire</h3>
-            <p>Expeditions stripped the woods for proprietary spores. Villagers hid what they could, swearing botanists to secrecy as memory-taxation began.</p>
-          </article>
-          <article class="timeline-item">
-            <div class="timeline-date">Surveyor's Watch</div>
-            <h3>A Living Archive</h3>
-            <p>The lone observer now transcribes blooms in transit, syncing each discovery to this ledger. Your search reshapes where they wander next.</p>
-          </article>
-        </div>
-
-        <div class="dialogue-box">
-          <div class="dialogue-character">The Oracle</div>
-          <div class="dialogue-text">"I saw someone tend the spores instead of hoarding them. Help the surveyor keep the archive breathing and the Kingdom might remember how to dream again."</div>
-        </div>
-      </section>
-
-      <section id="atlas" class="content-section" role="tabpanel" aria-labelledby="tab-atlas">
+      <section id="atlas" class="content-section active" role="tabpanel" aria-labelledby="tab-atlas">
         <div class="map-atlas">
           <section class="map-panel" aria-label="Interactive flora map">
             <div class="map-header">
@@ -85,6 +58,34 @@
             </div>
           </section>
         </div>
+
+        <section id="overview" class="overview-inline" role="region" aria-labelledby="tab-overview">
+          <h2>Archive Overview</h2>
+          <p class="section-intro">The flora of the Dreamless Kingdom remembers a time before the Palace rationed wonder. Spores weave memories between villages, and every bloom is a witness. This archive keeps their stories in motion while a lone surveyor charts the forgotten growth.</p>
+
+          <div class="timeline">
+            <article class="timeline-item">
+              <div class="timeline-date">Before the Silence</div>
+              <h3>Dream Gardens Flourish</h3>
+              <p>Collective gardens coaxed new species from shared reverie. These specimens shaped districts, guiding pilgrim paths by colour and scent.</p>
+            </article>
+            <article class="timeline-item">
+              <div class="timeline-date">The Extraction Age</div>
+              <h3>Palace Catalogues Desire</h3>
+              <p>Expeditions stripped the woods for proprietary spores. Villagers hid what they could, swearing botanists to secrecy as memory-taxation began.</p>
+            </article>
+            <article class="timeline-item">
+              <div class="timeline-date">Surveyor's Watch</div>
+              <h3>A Living Archive</h3>
+              <p>The lone observer now transcribes blooms in transit, syncing each discovery to this ledger. Your search reshapes where they wander next.</p>
+            </article>
+          </div>
+
+          <div class="dialogue-box">
+            <div class="dialogue-character">The Oracle</div>
+            <div class="dialogue-text">"I saw someone tend the spores instead of hoarding them. Help the surveyor keep the archive breathing and the Kingdom might remember how to dream again."</div>
+          </div>
+        </section>
       </section>
 
       <section id="catalogue" class="content-section" role="tabpanel" aria-labelledby="tab-catalogue">
@@ -134,18 +135,30 @@
     (function(){
       const tabs = document.querySelectorAll('.nav-tabs .tab');
       const sections = document.querySelectorAll('.content-section');
+      const overviewSection = document.getElementById('overview');
 
-      function activateSection(id){
+      function activateSection(id, options = {}){
+        const isOverview = id === 'overview';
+        const effectiveId = isOverview ? 'atlas' : id;
+
         tabs.forEach((tab)=>{
           const match = tab.dataset.section === id;
           tab.classList.toggle('active', match);
           tab.setAttribute('aria-selected', String(match));
         });
+
         sections.forEach((section)=>{
-          section.classList.toggle('active', section.id === id);
+          section.classList.toggle('active', section.id === effectiveId);
         });
+
         if(!location.hash.startsWith('#/item/')){
-          history.replaceState(null, '', '#' + id);
+          const hashValue = isOverview ? '#overview' : `#${effectiveId}`;
+          history.replaceState(null, '', hashValue);
+        }
+
+        if(isOverview && overviewSection){
+          const behavior = options.instant ? 'auto' : 'smooth';
+          requestAnimationFrame(()=> overviewSection.scrollIntoView({ behavior, block: 'start' }));
         }
       }
 
@@ -162,7 +175,7 @@
       const hash = location.hash.replace('#','');
       if(hash && !hash.startsWith('/item/')){
         const target = document.getElementById(hash);
-        if(target){ activateSection(hash); }
+        if(target){ activateSection(hash, { instant: true }); }
       }
 
       const sporeContainer = document.getElementById('sporeContainer');
