@@ -11,7 +11,7 @@ const state = {
   npcs: [],
 };
 
-const MAP_WORLD_SCALE = 1.26;
+const MAP_WORLD_SCALE = 1.12;
 
 const SCENE_EVENTS = [
   {
