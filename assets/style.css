@@ -338,6 +338,126 @@ button:hover, .badge:hover {
   gap: 32px;
 }
 
+.inventory-board {
+  background: linear-gradient(135deg, rgba(26, 31, 52, 0.95), rgba(12, 18, 35, 0.92));
+  border: 1px solid rgba(124, 111, 167, 0.45);
+  border-radius: 26px;
+  padding: clamp(20px, 4vw, 36px);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
+  display: grid;
+  gap: 24px;
+}
+
+.inventory-summary {
+  font-family: 'Inconsolata', monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.inventory-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.inventory-item {
+  background: rgba(9, 13, 26, 0.68);
+  border: 1px solid rgba(124, 111, 167, 0.35);
+  border-radius: 22px;
+  padding: 20px 22px;
+  display: grid;
+  gap: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inventory-item.latest {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.18);
+}
+
+.inventory-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inventory-item-header h3 {
+  margin: 0;
+  font-size: 1.28rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+.inventory-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.inventory-tags .tag,
+.inventory-tags .rarity-badge {
+  margin: 0;
+}
+
+.inventory-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.inventory-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 111, 167, 0.4);
+  background: rgba(16, 20, 36, 0.7);
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: rgba(224, 220, 255, 0.78);
+}
+
+.inventory-pill.region {
+  border-color: rgba(99, 240, 255, 0.4);
+  background: rgba(17, 47, 68, 0.55);
+  color: rgba(166, 245, 255, 0.95);
+}
+
+.inventory-pill.hook {
+  border-color: rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.18);
+  color: rgba(212, 175, 55, 0.9);
+}
+
+.inventory-pill.highlight {
+  border-color: rgba(212, 175, 55, 0.6);
+  background: rgba(212, 175, 55, 0.24);
+  color: rgba(212, 175, 55, 0.95);
+}
+
+.inventory-description {
+  margin: 0;
+  line-height: 1.6;
+  color: rgba(232, 227, 211, 0.82);
+}
+
+.inventory-empty {
+  margin: 0;
+  padding: 18px 16px;
+  border-radius: 18px;
+  text-align: center;
+  background: rgba(9, 13, 26, 0.6);
+  border: 1px dashed rgba(124, 111, 167, 0.35);
+  font-style: italic;
+  color: var(--muted);
+}
+
 .observer-panel {
   justify-self: stretch;
   width: 100%;
@@ -812,37 +932,22 @@ button:hover, .badge:hover {
   border-color: rgba(220, 214, 245, 0.45);
 }
 
-.overview-inline {
+.overview-board {
   margin: 0;
-  padding: 32px;
-  border-top: none;
+  padding: clamp(24px, 4vw, 36px);
   border-radius: 26px;
   border: 1px solid rgba(124, 111, 167, 0.4);
   background: linear-gradient(135deg, rgba(26, 31, 52, 0.96), rgba(12, 17, 34, 0.92));
   box-shadow: 0 22px 45px rgba(0, 0, 0, 0.45);
   display: grid;
   gap: 32px;
-  scroll-margin-top: 120px;
 }
 
-.overview-inline h2 {
-  margin: 0;
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
-  color: var(--accent-gold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-shadow: 0 0 18px rgba(212, 175, 55, 0.32);
-}
-
-.overview-inline .section-intro {
-  max-width: 860px;
-}
-
-.overview-inline .timeline {
+.overview-board .timeline {
   margin: 0;
 }
 
-.overview-inline .dialogue-box {
+.overview-board .dialogue-box {
   margin-top: 0;
 }
 
@@ -864,6 +969,10 @@ button:hover, .badge:hover {
 .section-header .section-intro {
   margin: 0;
   max-width: 820px;
+}
+
+#overview .section-header .section-intro {
+  max-width: 860px;
 }
 
 .npc-directory {

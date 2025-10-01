@@ -2099,6 +2099,7 @@ async function main(){
   renderVariantCycle();
   renderTags();
   applyFilters();
+  renderInventory();
   renderNpcDirectory();
   restoreFromHash();
   initExplorer();
@@ -2347,12 +2348,156 @@ function renderExplorerLog(){
   list.appendChild(frag);
 }
 
+function renderInventory(){
+  const list = document.querySelector('#inventory-list');
+  const summary = document.querySelector('#inventory-summary');
+  if(!list) return;
+
+  list.innerHTML = '';
+  const explorer = state.explorer;
+  const entries = Array.isArray(state.entries) ? state.entries : [];
+  const entriesById = new Map(entries.map(entry => [entry.id, entry]));
+
+  if(!explorer){
+    if(summary){
+      summary.textContent = 'Inventory link calibrating…';
+    }
+    const li = document.createElement('li');
+    li.className = 'inventory-empty';
+    li.textContent = 'Surveyor feed initializing. Inventory data will appear shortly.';
+    list.appendChild(li);
+    return;
+  }
+
+  const collectedIds = explorer.collected ? Array.from(explorer.collected) : [];
+  const collectedEntries = collectedIds
+    .map(id => entriesById.get(id))
+    .filter(Boolean);
+  collectedEntries.reverse();
+
+  const uniqueCount = collectedEntries.length;
+  if(summary){
+    summary.textContent = uniqueCount
+      ? `${uniqueCount} ${uniqueCount === 1 ? 'specimen catalogued' : 'specimens catalogued'}`
+      : 'No specimens catalogued yet';
+  }
+
+  if(!uniqueCount){
+    const li = document.createElement('li');
+    li.className = 'inventory-empty';
+    li.textContent = 'No specimens catalogued yet. The surveyor is still scouting the region.';
+    list.appendChild(li);
+    return;
+  }
+
+  const latestId = explorer.lastCollectedId;
+  const frag = document.createDocumentFragment();
+
+  collectedEntries.forEach(entry => {
+    const li = document.createElement('li');
+    li.className = 'inventory-item';
+    if(latestId === entry.id){
+      li.classList.add('latest');
+    }
+
+    const header = document.createElement('div');
+    header.className = 'inventory-item-header';
+
+    const title = document.createElement('h3');
+    title.textContent = entry.title;
+    header.appendChild(title);
+
+    if(latestId === entry.id){
+      const badge = document.createElement('span');
+      badge.className = 'inventory-pill highlight';
+      badge.textContent = 'Latest capture';
+      header.appendChild(badge);
+    }
+
+    li.appendChild(header);
+
+    const variant = entry.variant || null;
+    const tags = [];
+    if(entry.tag){
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = entry.tag;
+      tags.push(tag);
+    }
+    if(variant?.rarity){
+      const rarity = document.createElement('span');
+      rarity.className = `rarity-badge ${variant.rarityClass || ''}`.trim();
+      rarity.textContent = variant.rarity;
+      tags.push(rarity);
+    }
+    if(variant?.condition){
+      const condition = document.createElement('span');
+      condition.className = 'tag alt';
+      condition.textContent = variant.condition;
+      tags.push(condition);
+    }
+    if(variant?.mutation){
+      const mutation = document.createElement('span');
+      mutation.className = 'tag alt subtle';
+      mutation.textContent = variant.mutation;
+      tags.push(mutation);
+    }
+    if(variant?.quirk){
+      const quirk = document.createElement('span');
+      quirk.className = 'tag alt subtle';
+      quirk.textContent = variant.quirk;
+      tags.push(quirk);
+    }
+
+    if(tags.length){
+      const tagWrap = document.createElement('div');
+      tagWrap.className = 'inventory-tags';
+      tags.forEach(tagEl => tagWrap.appendChild(tagEl));
+      li.appendChild(tagWrap);
+    }
+
+    const metaTokens = [];
+    if(entry.location?.region){
+      const region = document.createElement('span');
+      region.className = 'inventory-pill region';
+      region.textContent = entry.location.region;
+      metaTokens.push(region);
+    }
+    if(variant?.hook){
+      const hook = document.createElement('span');
+      hook.className = 'inventory-pill hook';
+      hook.textContent = variant.hook;
+      metaTokens.push(hook);
+    }
+
+    if(metaTokens.length){
+      const meta = document.createElement('div');
+      meta.className = 'inventory-meta';
+      metaTokens.forEach(token => meta.appendChild(token));
+      li.appendChild(meta);
+    }
+
+    const summaryText = entry.displaySummary || entry.summary || '';
+    if(summaryText){
+      const paragraph = document.createElement('p');
+      paragraph.className = 'inventory-description small';
+      paragraph.textContent = summaryText;
+      li.appendChild(paragraph);
+    }
+
+    frag.appendChild(li);
+  });
+
+  list.appendChild(frag);
+}
+
 function renderExplorerUI(){
   renderExplorerElement();
   renderExplorerStatus();
   renderSceneEvent();
   renderExplorerCount();
   renderExplorerLog();
+  renderInventory();
   renderNpcDirectory();
   renderMapMarkers();
 }

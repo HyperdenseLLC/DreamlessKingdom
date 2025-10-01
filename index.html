@@ -13,25 +13,21 @@
   <div class="container">
     <header class="hero">
       <h1>DREAMLESS KINGDOM</h1>
-      <div class="subtitle">Flora Archive &amp; Living Field Notes</div>
+      <div class="subtitle">Living Field Notes</div>
     </header>
 
     <nav class="nav-tabs" role="tablist" aria-label="Archive sections">
-      <button id="tab-atlas" class="tab active" data-section="atlas" type="button" role="tab" aria-selected="true">Atlas Overlay</button>
-      <button id="tab-overview" class="tab" data-section="overview" type="button" role="tab" aria-controls="overview" aria-selected="false">Archive Overview</button>
-      <button id="tab-catalogue" class="tab" data-section="catalogue" type="button" role="tab" aria-selected="false">Specimen Catalogue</button>
-      <button id="tab-npcs" class="tab" data-section="npcs" type="button" role="tab" aria-controls="npcs" aria-selected="false">NPC Compendium</button>
+      <button id="tab-atlas" class="tab active" data-section="atlas" type="button" role="tab" aria-controls="atlas" aria-selected="true">Visual Atlas</button>
+      <button id="tab-catalogue" class="tab" data-section="catalogue" type="button" role="tab" aria-controls="catalogue" aria-selected="false">Specimen Catalogue</button>
+      <button id="tab-inventory" class="tab" data-section="inventory" type="button" role="tab" aria-controls="inventory" aria-selected="false">Inventory</button>
+      <button id="tab-villagers" class="tab" data-section="villagers" type="button" role="tab" aria-controls="villagers" aria-selected="false">Villagers</button>
+      <button id="tab-overview" class="tab" data-section="overview" type="button" role="tab" aria-controls="overview" aria-selected="false">Overview</button>
     </nav>
 
     <main>
       <section id="atlas" class="content-section active" role="tabpanel" aria-labelledby="tab-atlas">
         <div class="map-atlas">
           <section class="map-panel" aria-label="Interactive flora map">
-            <div class="map-header">
-              <h2>Flora Atlas Overlay</h2>
-              <p>Markers glow when a specimen matches your current search. Click any marker to open the full entry.</p>
-              <div id="variant-cycle" class="map-variant" aria-live="polite"></div>
-            </div>
             <div id="map" class="map" role="img" aria-label="Stylised map of the Dreamless Kingdom with flora markers"></div>
             <div class="map-legend small">
               <span class="legend-item"><span class="legend-dot"></span> Discoverable specimen</span>
@@ -58,34 +54,6 @@
                 <ol id="explorer-log" class="observer-log" aria-label="Recent specimens catalogued"></ol>
               </div>
             </section>
-
-            <section id="overview" class="overview-inline" role="region" aria-labelledby="tab-overview">
-              <h2>Archive Overview</h2>
-              <p class="section-intro">The flora of the Dreamless Kingdom remembers a time before the Palace rationed wonder. Spores weave memories between villages, and every bloom is a witness. This archive keeps their stories in motion while a lone surveyor charts the forgotten growth.</p>
-
-              <div class="timeline">
-                <article class="timeline-item">
-                  <div class="timeline-date">Before the Silence</div>
-                  <h3>Dream Gardens Flourish</h3>
-                  <p>Collective gardens coaxed new species from shared reverie. These specimens shaped districts, guiding pilgrim paths by colour and scent.</p>
-                </article>
-                <article class="timeline-item">
-                  <div class="timeline-date">The Extraction Age</div>
-                  <h3>Palace Catalogues Desire</h3>
-                  <p>Expeditions stripped the woods for proprietary spores. Villagers hid what they could, swearing botanists to secrecy as memory-taxation began.</p>
-                </article>
-                <article class="timeline-item">
-                  <div class="timeline-date">Surveyor's Watch</div>
-                  <h3>A Living Archive</h3>
-                  <p>The lone observer now transcribes blooms in transit, syncing each discovery to this ledger. Your search reshapes where they wander next.</p>
-                </article>
-              </div>
-
-              <div class="dialogue-box">
-                <div class="dialogue-character">The Oracle</div>
-                <div class="dialogue-text">"I saw someone tend the spores instead of hoarding them. Help the surveyor keep the archive breathing and the Kingdom might remember how to dream again."</div>
-              </div>
-            </section>
           </div>
         </div>
       </section>
@@ -102,12 +70,55 @@
         <section id="grid" class="grid" aria-live="polite"></section>
       </section>
 
-      <section id="npcs" class="content-section" role="tabpanel" aria-labelledby="tab-npcs">
+      <section id="inventory" class="content-section" role="tabpanel" aria-labelledby="tab-inventory">
         <header class="section-header">
-          <h2>NPC Network</h2>
+          <h2>Inventory</h2>
+          <p class="section-intro">Everything the zero-player surveyor has secured while roaming the Dreamless Kingdom.</p>
+        </header>
+        <div class="inventory-board">
+          <div id="inventory-summary" class="inventory-summary" aria-live="polite">Inventory link calibrating…</div>
+          <ul id="inventory-list" class="inventory-list" aria-live="polite"></ul>
+        </div>
+      </section>
+
+      <section id="villagers" class="content-section" role="tabpanel" aria-labelledby="tab-villagers">
+        <header class="section-header">
+          <h2>Villagers</h2>
           <p class="section-intro">Meet the Dreamless Kingdom's trusted contacts. Status updates as the expedition unlocks new exchanges.</p>
         </header>
         <div id="npc-directory" class="npc-directory" aria-live="polite"></div>
+      </section>
+
+      <section id="overview" class="content-section" role="tabpanel" aria-labelledby="tab-overview">
+        <header class="section-header">
+          <h2>Overview</h2>
+          <p class="section-intro">The flora of the Dreamless Kingdom remembers a time before the Palace rationed wonder. Spores weave memories between villages, and every bloom is a witness. This archive keeps their stories in motion while a lone surveyor charts the forgotten growth.</p>
+        </header>
+
+        <div class="overview-board">
+          <div class="timeline">
+            <article class="timeline-item">
+              <div class="timeline-date">Before the Silence</div>
+              <h3>Dream Gardens Flourish</h3>
+              <p>Collective gardens coaxed new species from shared reverie. These specimens shaped districts, guiding pilgrim paths by colour and scent.</p>
+            </article>
+            <article class="timeline-item">
+              <div class="timeline-date">The Extraction Age</div>
+              <h3>Palace Catalogues Desire</h3>
+              <p>Expeditions stripped the woods for proprietary spores. Villagers hid what they could, swearing botanists to secrecy as memory-taxation began.</p>
+            </article>
+            <article class="timeline-item">
+              <div class="timeline-date">Surveyor's Watch</div>
+              <h3>A Living Archive</h3>
+              <p>The lone observer now transcribes blooms in transit, syncing each discovery to this ledger. Your search reshapes where they wander next.</p>
+            </article>
+          </div>
+
+          <div class="dialogue-box">
+            <div class="dialogue-character">The Oracle</div>
+            <div class="dialogue-text">"I saw someone tend the spores instead of hoarding them. Help the surveyor keep the archive breathing and the Kingdom might remember how to dream again."</div>
+          </div>
+        </div>
       </section>
     </main>
 
@@ -144,11 +155,11 @@
     (function(){
       const tabs = document.querySelectorAll('.nav-tabs .tab');
       const sections = document.querySelectorAll('.content-section');
-      const overviewSection = document.getElementById('overview');
+      const DEFAULT_SECTION = 'atlas';
 
       function activateSection(id, options = {}){
-        const isOverview = id === 'overview';
-        const effectiveId = isOverview ? 'atlas' : id;
+        const target = document.getElementById(id);
+        if(!target) return;
 
         tabs.forEach((tab)=>{
           const match = tab.dataset.section === id;
@@ -157,17 +168,11 @@
         });
 
         sections.forEach((section)=>{
-          section.classList.toggle('active', section.id === effectiveId);
+          section.classList.toggle('active', section.id === id);
         });
 
-        if(!location.hash.startsWith('#/item/')){
-          const hashValue = isOverview ? '#overview' : `#${effectiveId}`;
-          history.replaceState(null, '', hashValue);
-        }
-
-        if(isOverview && overviewSection){
-          const behavior = options.instant ? 'auto' : 'smooth';
-          requestAnimationFrame(()=> overviewSection.scrollIntoView({ behavior, block: 'start' }));
+        if(options.updateHash !== false && !location.hash.startsWith('#/item/')){
+          history.replaceState(null, '', `#${id}`);
         }
       }
 
@@ -181,11 +186,12 @@
         });
       });
 
+      let initial = DEFAULT_SECTION;
       const hash = location.hash.replace('#','');
-      if(hash && !hash.startsWith('/item/')){
-        const target = document.getElementById(hash);
-        if(target){ activateSection(hash, { instant: true }); }
+      if(hash && !hash.startsWith('/item/') && document.getElementById(hash)){
+        initial = hash;
       }
+      activateSection(initial, { updateHash: false });
 
       const sporeContainer = document.getElementById('sporeContainer');
       if(sporeContainer){
