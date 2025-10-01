@@ -72,9 +72,9 @@ a {
 .container {
   position: relative;
   z-index: 2;
-  max-width: 1200px;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 32px 24px 80px;
+  padding: 32px 24px 96px;
 }
 
 .hero {
@@ -312,14 +312,14 @@ button:hover, .badge:hover {
 
 .map-atlas {
   display: grid;
-  gap: 32px;
+  gap: 36px;
 }
 
 .map-panel {
   background: linear-gradient(135deg, rgba(26, 31, 52, 0.95), rgba(12, 18, 35, 0.95));
   border: 1px solid var(--accent-purple);
   border-radius: 26px;
-  padding: 28px;
+  padding: 24px 24px 28px;
   box-shadow: 0 22px 45px rgba(0, 0, 0, 0.45);
 }
 
@@ -373,7 +373,9 @@ button:hover, .badge:hover {
 .map {
   position: relative;
   width: 100%;
-  aspect-ratio: 16/9;
+  max-width: 560px;
+  margin: 0 auto;
+  aspect-ratio: 20/9;
   border-radius: 20px;
   border: 1px solid rgba(124, 111, 167, 0.35);
   background: radial-gradient(circle at 22% 18%, rgba(212, 175, 55, 0.18), transparent 62%),
@@ -620,7 +622,7 @@ button:hover, .badge:hover {
 .marker {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: clamp(13px, 1.5vw, 20px);
+  width: clamp(10px, 1.25vw, 18px);
   aspect-ratio: 1;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.8);
@@ -737,10 +739,10 @@ button:hover, .badge:hover {
   background: linear-gradient(135deg, rgba(26, 31, 52, 0.95), rgba(17, 22, 40, 0.95));
   border: 1px solid var(--accent-purple);
   border-radius: 26px;
-  padding: 24px;
+  padding: 28px;
   box-shadow: 0 22px 45px rgba(0, 0, 0, 0.45);
   display: grid;
-  gap: 20px;
+  gap: 24px;
 }
 
 .panel-header h2 {
@@ -756,9 +758,8 @@ button:hover, .badge:hover {
 }
 
 .observer-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  gap: 20px;
 }
 
 .observer-stats {
@@ -778,7 +779,7 @@ button:hover, .badge:hover {
   list-style: none;
   display: grid;
   gap: 10px;
-  max-height: 220px;
+  max-height: 260px;
   overflow: auto;
   font-size: 0.9rem;
 }
@@ -800,6 +801,14 @@ button:hover, .badge:hover {
   border-color: rgba(99, 240, 255, 0.2);
 }
 
+.observer-log li.scene {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  border-color: rgba(212, 175, 55, 0.28);
+  background: rgba(18, 22, 43, 0.78);
+}
+
 .observer-log li.dialogue.new {
   border-color: rgba(212, 175, 55, 0.35);
   box-shadow: 0 0 18px rgba(212, 175, 55, 0.15);
@@ -819,6 +828,11 @@ button:hover, .badge:hover {
 
 .observer-log .log-title {
   flex: 1;
+}
+
+.observer-log .log-summary {
+  display: block;
+  color: var(--muted);
 }
 
 .observer-log .log-note {
@@ -859,6 +873,29 @@ button:hover, .badge:hover {
 
 .observer-log .log-dialogue span {
   display: block;
+}
+
+.observer-scene {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(12, 17, 32, 0.82);
+  border: 1px solid rgba(124, 111, 167, 0.45);
+  box-shadow: inset 0 0 24px rgba(124, 111, 167, 0.18);
+  display: grid;
+  gap: 6px;
+}
+
+.observer-scene .scene-label {
+  font-family: 'Inconsolata', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: rgba(212, 175, 55, 0.7);
+}
+
+.observer-scene .scene-status {
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .grid {
@@ -1212,14 +1249,21 @@ header .right {
 
 @supports not (aspect-ratio: 1/1) {
   .map {
-    padding-top: 62%;
+    padding-top: 45%;
   }
 }
 
 @media (min-width: 960px) {
   .map-atlas {
-    grid-template-columns: 2fr 1.2fr;
+    grid-template-columns: 1.25fr 1.6fr;
     align-items: start;
+  }
+}
+
+@media (min-width: 1360px) {
+  .map-atlas {
+    grid-template-columns: 1.1fr 1.4fr;
+    gap: 42px;
   }
 }
 

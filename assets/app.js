@@ -11,7 +11,43 @@ const state = {
   npcs: [],
 };
 
-const MAP_WORLD_SCALE = 1.32;
+const MAP_WORLD_SCALE = 1.26;
+
+const SCENE_EVENTS = [
+  {
+    id: 'aurora-surge',
+    title: 'Aurora Surge',
+    summary: 'Auroral currents braid around the surveyor, accelerating each stride across the ley-lines.',
+    duration: 28,
+    cooldown: 68,
+    speedMultiplier: 1.24,
+    npcBias: 0.08,
+    status: 'Aurora surge guiding the route',
+    logNote: 'Ley-lines amplifying pace',
+  },
+  {
+    id: 'veilwind-fog',
+    title: 'Veilwind Fog',
+    summary: 'A hush of phosphor fog settles in, slowing the route but drawing more contacts out of hiding.',
+    duration: 34,
+    cooldown: 72,
+    speedMultiplier: 0.78,
+    npcBias: 0.22,
+    status: 'Navigating veilwind fog',
+    logNote: 'NPC encounters favored',
+  },
+  {
+    id: 'festival-rally',
+    title: 'Festival Rally',
+    summary: 'Carnival caravans flood the promenades, sharing shortcuts and festival rumors with the surveyor.',
+    duration: 26,
+    cooldown: 64,
+    speedMultiplier: 1.08,
+    npcBias: 0.32,
+    status: 'Festival rally rippling through streets',
+    logNote: 'Caravan guidance engaged',
+  }
+];
 
 const ISO_PROJECTION = (()=>{
   const angle = Math.PI / 6;
@@ -356,6 +392,117 @@ const NPCS = [
         lines: [
           'Neer sets the ember into a lantern cage.',
           '"Guides will trade for this light all winter. You always arrive when the dark thickens."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'resonant-historian',
+    name: 'Historian Aderyn',
+    title: 'Resonant Historian',
+    description: 'Collects echoes from collapsed amphitheatres to retune the Choir\'s harmonics.',
+    location: { x: 44, y: 32, region: 'Resonant Plaza' },
+    dialogues: [
+      {
+        id: 'aderyn-greeting',
+        title: 'Echoed Salute',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Aderyn cups their ear toward the plaza stones.',
+          '"Every echo you chase keeps the Choir awake. Trade me any verse you rescued."'
+        ]
+      },
+      {
+        id: 'aderyn-chorus',
+        title: 'Chorus Reconstruction',
+        requires: ['chorus-spore-cluster'],
+        lines: [
+          '"These spores remember the lost choristers," Aderyn whispers.',
+          '"I\'ll lace them through the ruined aisles so the songs can resurface."'
+        ]
+      },
+      {
+        id: 'aderyn-moonlace',
+        title: 'Moonlace Archive',
+        requires: ['moonlace-bloom'],
+        lines: [
+          'Moonlace filaments shimmer across Aderyn\'s ledger.',
+          '"With this light I can expose the Palace forgeries before the next ration decree lands."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'fen-warden-lys',
+    name: 'Warden Lys',
+    title: 'Fen Boundary Warden',
+    description: 'Guards the Dawnmire crossings where sleepers wander when the tides recede.',
+    location: { x: 60, y: 84, region: 'Dusk Tunnels Fen' },
+    dialogues: [
+      {
+        id: 'lys-greeting',
+        title: 'Mistwatch Briefing',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Lys plants a staff beside the marsh lights.',
+          '"You walk brinks others fear. Tell me what the reeds whispered while you crossed."'
+        ]
+      },
+      {
+        id: 'lys-dawnmire',
+        title: 'Reed Signal Mapping',
+        requires: ['dawnmire-reed'],
+        lines: [
+          '"These reeds warned of tide reversals in time," Lys nods.',
+          '"I\'ll weave them into our sentry bells so no pilgrim sinks again."'
+        ]
+      },
+      {
+        id: 'lys-gloomcap',
+        title: 'Gloomcap Lantern Net',
+        requires: ['gloomcap-mantle'],
+        lines: [
+          'Lys strings the mantle between watch posts.',
+          '"Let\'s trap the worst shadows before the Palace patrols drift this way."'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'skyglass-mechanist',
+    name: 'Mechanist Corin',
+    title: 'Skyglass Mechanist',
+    description: 'Maintains the atlas instruments that align the Alchemists\' Span with the sky lanes.',
+    location: { x: 48, y: 44, region: "Alchemists' Span" },
+    dialogues: [
+      {
+        id: 'corin-greeting',
+        title: 'Calibration Exchange',
+        fallback: true,
+        requires: [],
+        lines: [
+          'Corin adjusts a skyglass dial to match your arrival.',
+          '"Your routes correct our instruments faster than any guild apprentice. Keep sharing their drift."'
+        ]
+      },
+      {
+        id: 'corin-honeyglobe',
+        title: 'Honeyglobe Coolant',
+        requires: ['honeyglobe-capsule'],
+        lines: [
+          '"Honeyglobe nectar steadies the condenser," Corin grins.',
+          '"I\'ll freeze a map-layer for you once it settles."'
+        ]
+      },
+      {
+        id: 'corin-zephyr',
+        title: 'Zephyr Compass Draft',
+        requires: ['zephyr-peony'],
+        lines: [
+          'Corin slots peony petals into the compass cage.',
+          '"With this, the sky lanes will echo your footpaths. Expect more runners at your side."'
         ]
       }
     ]
@@ -1173,7 +1320,31 @@ function renderExplorerStatus(){
   } else if(ex.phase === 'idle'){
     text = 'Surveyor selecting the next waypoint…';
   }
+  if(ex.sceneEvent){
+    const descriptor = ex.sceneEvent.status || ex.sceneEvent.summary;
+    if(descriptor){
+      const remaining = Math.max(0, Math.ceil(ex.sceneTimer || 0));
+      const suffix = remaining ? ` (${remaining}s)` : '';
+      text += ` • ${descriptor}${suffix}`;
+    }
+  }
   el.textContent = text;
+}
+
+function renderSceneEvent(){
+  const el = document.querySelector('#observer-scene');
+  if(!el || !state.explorer) return;
+  const ex = state.explorer;
+  const event = ex.sceneEvent;
+  if(event){
+    const descriptor = event.status || event.summary || 'Field conditions shifting';
+    const remaining = Math.max(0, Math.ceil(ex.sceneTimer || 0));
+    el.textContent = remaining ? `${descriptor} (${remaining}s)` : descriptor;
+    el.classList.remove('muted');
+  } else {
+    el.textContent = 'No anomalies detected.';
+    el.classList.add('muted');
+  }
 }
 
 function renderExplorerCount(){
@@ -1208,6 +1379,20 @@ function renderExplorerLog(){
         </div>
         <div class="log-dialogue">${dialogueHtml}</div>
       `;
+    } else if(item.type === 'scene'){
+      li.classList.add('scene');
+      const summary = item.summary ? `<span class="log-summary">${item.summary}</span>` : '';
+      const note = item.note ? `<span class="log-note">${item.note}</span>` : '';
+      li.innerHTML = `
+        <div class="log-header">
+          <span class="log-time">${time}</span>
+          <div class="log-title-group">
+            <span class="log-title">${item.title}</span>
+            ${summary}
+          </div>
+          ${note}
+        </div>
+      `;
     } else {
       const noteParts = [];
       if(item.rarity) noteParts.push(item.rarity);
@@ -1231,6 +1416,7 @@ function renderExplorerLog(){
 function renderExplorerUI(){
   renderExplorerElement();
   renderExplorerStatus();
+  renderSceneEvent();
   renderExplorerCount();
   renderExplorerLog();
   renderMapMarkers();
@@ -1273,6 +1459,49 @@ function hasNewNpcDialogue(npc){
   return !!(result && result.isNew);
 }
 
+function triggerSceneEvent(){
+  const ex = state.explorer;
+  if(!ex || !SCENE_EVENTS.length) return;
+  const previousId = ex.sceneEvent?.id;
+  const pool = SCENE_EVENTS.filter(event => event.id !== previousId);
+  const candidates = pool.length ? pool : SCENE_EVENTS;
+  const choice = candidates[Math.floor(Math.random() * candidates.length)];
+  if(!choice) return;
+  ex.sceneEvent = { ...choice };
+  ex.sceneTimer = Math.max(4, choice.duration || 24);
+  ex.sceneTimerDisplay = Math.ceil(ex.sceneTimer);
+  ex.sceneCooldown = Math.max(24, choice.cooldown || 48);
+  ex.sceneInfluence = {
+    npcBias: Math.max(0, choice.npcBias || 0),
+  };
+  ex.speed = ex.baseSpeed * (choice.speedMultiplier || 1);
+  ex.log.unshift({
+    type: 'scene',
+    id: `scene:${choice.id}:${Date.now()}`,
+    title: choice.title,
+    summary: choice.summary,
+    note: choice.logNote || '',
+    time: new Date(),
+  });
+  ex.log = ex.log.slice(0, 10);
+  renderExplorerLog();
+  renderSceneEvent();
+  renderExplorerStatus();
+}
+
+function clearSceneEvent(){
+  const ex = state.explorer;
+  if(!ex || !ex.sceneEvent) return;
+  ex.sceneEvent = null;
+  ex.sceneInfluence = null;
+  ex.sceneTimer = 0;
+  ex.sceneTimerDisplay = null;
+  ex.speed = ex.baseSpeed;
+  ex.sceneCooldown = Math.max(ex.sceneCooldown || 0, 18);
+  renderSceneEvent();
+  renderExplorerStatus();
+}
+
 function pickExplorerTarget(){
   const ex = state.explorer;
   if(!ex) return;
@@ -1281,12 +1510,14 @@ function pickExplorerTarget(){
   const unvisitedEntries = entryCandidates.filter(e=>!ex.collected.has(e.id));
   const entryPool = unvisitedEntries.length ? unvisitedEntries : entryCandidates;
   const npcsWithNew = npcCandidates.filter(hasNewNpcDialogue);
+  const npcBias = Math.min(0.6, Math.max(0, ex.sceneInfluence?.npcBias || 0));
+  const npcChance = Math.min(0.85, 0.22 + npcBias);
   let nextTarget = null;
   if(npcsWithNew.length){
     const npc = npcsWithNew[Math.floor(Math.random() * npcsWithNew.length)];
     nextTarget = { type: 'npc', npc };
   } else if(entryPool.length){
-    if(npcCandidates.length && Math.random() < 0.22){
+    if(npcCandidates.length && Math.random() < npcChance){
       const npc = npcCandidates[Math.floor(Math.random() * npcCandidates.length)];
       nextTarget = { type: 'npc', npc };
     } else {
@@ -1326,7 +1557,7 @@ function handleExplorerCollect(entry){
     mutation: entry.variant?.mutation,
     quirk: entry.variant?.quirk
   });
-  ex.log = ex.log.slice(0, 8);
+  ex.log = ex.log.slice(0, 10);
   ex.pauseTimer = 2.2;
   ex.pauseDuration = ex.pauseTimer;
   ex.phase = 'collecting';
@@ -1366,7 +1597,7 @@ function handleExplorerNpc(npc){
     lines,
     isNew: !!selection.isNew,
   });
-  ex.log = ex.log.slice(0, 8);
+  ex.log = ex.log.slice(0, 10);
   ex.target = null;
   renderExplorerUI();
 }
@@ -1377,6 +1608,27 @@ function explorerStep(ts){
   if(!ex.lastTick) ex.lastTick = ts;
   const dt = Math.min((ts - ex.lastTick)/1000, 0.25);
   ex.lastTick = ts;
+
+  if(ex.sceneTimer && ex.sceneTimer > 0){
+    ex.sceneTimer = Math.max(0, ex.sceneTimer - dt);
+    const display = Math.ceil(ex.sceneTimer);
+    if(display !== ex.sceneTimerDisplay){
+      ex.sceneTimerDisplay = display;
+      renderSceneEvent();
+      renderExplorerStatus();
+    }
+    if(ex.sceneTimer === 0){
+      clearSceneEvent();
+    }
+  } else if(ex.sceneEvent){
+    clearSceneEvent();
+  } else {
+    if(ex.sceneCooldown && ex.sceneCooldown > 0){
+      ex.sceneCooldown = Math.max(0, ex.sceneCooldown - dt);
+    } else if(Math.random() < 0.0035){
+      triggerSceneEvent();
+    }
+  }
 
   if(ex.pauseTimer && ex.pauseTimer > 0){
     ex.pauseTimer = Math.max(0, ex.pauseTimer - dt);
@@ -1436,6 +1688,7 @@ function initExplorer(){
   state.explorer = {
     x: 50,
     y: 50,
+    baseSpeed: 5,
     speed: 5,
     collected: new Set(),
     log: [],
@@ -1451,6 +1704,11 @@ function initExplorer(){
     dialogueSeen: new Set(),
     currentNpc: null,
     currentDialogue: null,
+    sceneEvent: null,
+    sceneInfluence: null,
+    sceneTimer: 0,
+    sceneTimerDisplay: null,
+    sceneCooldown: 14,
   };
   ensureExplorerElement();
   recordExplorerPosition(true);
