@@ -13,8 +13,11 @@ const state = {
   mapCamera: null,
 };
 
-const MAP_WORLD_SCALE = 1.32;
-const MAP_ZONE_SIZE_SCALE = 0.82;
+const LABEL_PLACEMENTS = new Map();
+
+const MAP_WORLD_SCALE = 1.46;
+const MAP_ZONE_SIZE_SCALE = 0.78;
+const LANDSCAPE_SPREAD = 1.18;
 
 const SCENE_EVENTS = [
   {
@@ -1482,10 +1485,19 @@ function renderVariantCycle(){
   `;
 }
 
+function applyLandscapeSpread(value){
+  if(value == null) return 50;
+  const offset = value - 50;
+  const scaled = 50 + offset * LANDSCAPE_SPREAD;
+  return clampNumber(scaled, 0, 100);
+}
+
 function projectIsoPoint(x, y){
   if(x == null || y == null) return { left: 50, top: 50 };
-  const rawX = ((x - y) * ISO_PROJECTION.cos + ISO_PROJECTION.rangeX) / (ISO_PROJECTION.rangeX * 2);
-  const rawY = (x + y) * ISO_PROJECTION.sin / 100;
+  const sx = applyLandscapeSpread(x);
+  const sy = applyLandscapeSpread(y);
+  const rawX = ((sx - sy) * ISO_PROJECTION.cos + ISO_PROJECTION.rangeX) / (ISO_PROJECTION.rangeX * 2);
+  const rawY = (sx + sy) * ISO_PROJECTION.sin / 100;
   const left = rawX * ISO_PROJECTION.scaleX + ISO_PROJECTION.marginX / 2;
   const top = rawY * ISO_PROJECTION.scaleY + ISO_PROJECTION.marginYTop;
   return {
@@ -1758,42 +1770,58 @@ function resolveMapLabelCollisions(){
   if(!markerNodes.length) return;
   const markerRects = markerNodes.map(el => el.getBoundingClientRect());
   const orientationClasses = ['label-above', 'label-below'];
-  zones.forEach(zone => {
+  const nextPlacements = new Map();
+  zones.forEach((zone, index) => {
     const label = zone.querySelector('.map-zone-label');
     if(!label) return;
-    label.style.removeProperty('--label-shift-x');
-    label.style.removeProperty('--label-gap');
     label.style.removeProperty('--label-shift-y');
+    const zoneKey = zone.dataset.zoneName || `zone-${index}`;
     const prefersAbove = zone.classList.contains('label-above');
     const orientations = prefersAbove ? ['label-above', 'label-below'] : ['label-below', 'label-above'];
-    const gaps = [22, 28, 36];
-    const shifts = [0, -64, 64, -110, 110];
-    let placed = false;
-    for(const orientation of orientations){
+    const gaps = [24, 30, 38];
+    const shifts = [0, -72, 72, -118, 118];
+    const tryPlacement = (orientation, gap, shift) => {
       orientationClasses.forEach(cls => zone.classList.remove(cls));
       zone.classList.add(orientation);
-      for(const gap of gaps){
-        label.style.setProperty('--label-gap', `${gap}px`);
-        for(const shift of shifts){
-          label.style.setProperty('--label-shift-x', `${shift}px`);
-          const rect = label.getBoundingClientRect();
-          const overlaps = markerRects.some(markerRect => rectanglesOverlap(rect, markerRect));
-          if(!overlaps){
-            placed = true;
-            break;
+      label.style.setProperty('--label-gap', `${gap}px`);
+      label.style.setProperty('--label-shift-x', `${shift}px`);
+      const rect = label.getBoundingClientRect();
+      return !markerRects.some(markerRect => rectanglesOverlap(rect, markerRect));
+    };
+
+    let placement = null;
+    const cached = LABEL_PLACEMENTS.get(zoneKey);
+    if(cached && tryPlacement(cached.orientation, cached.gap, cached.shift)){
+      placement = cached;
+    } else {
+      for(const orientation of orientations){
+        let found = false;
+        for(const gap of gaps){
+          for(const shift of shifts){
+            if(tryPlacement(orientation, gap, shift)){
+              placement = { orientation, gap, shift };
+              found = true;
+              break;
+            }
           }
+          if(found) break;
         }
-        if(placed) break;
+        if(found) break;
       }
-      if(placed) break;
     }
-    if(!placed){
-      orientationClasses.forEach(cls => zone.classList.remove(cls));
-      zone.classList.add(orientations[0]);
-      label.style.setProperty('--label-gap', '36px');
-      label.style.setProperty('--label-shift-x', orientations[0] === 'label-above' ? '-110px' : '110px');
+
+    if(!placement){
+      const fallbackOrientation = orientations[0];
+      const fallbackGap = 38;
+      const fallbackShift = fallbackOrientation === 'label-above' ? -118 : 118;
+      tryPlacement(fallbackOrientation, fallbackGap, fallbackShift);
+      placement = { orientation: fallbackOrientation, gap: fallbackGap, shift: fallbackShift };
     }
+
+    nextPlacements.set(zoneKey, placement);
   });
+  LABEL_PLACEMENTS.clear();
+  nextPlacements.forEach((value, key)=> LABEL_PLACEMENTS.set(key, value));
 }
 
 function normalize(s) { return (s||'').toLowerCase(); }
@@ -2125,9 +2153,9 @@ async function main(){
       location,
       home: location ? { x: location.x, y: location.y } : null,
       wanderTarget: location ? { x: location.x, y: location.y } : null,
-      wanderPause: Math.random() * 4,
-      wanderSpeed: 0.65 + Math.random() * 0.55,
-      wanderRadius: 4 + Math.random() * 4,
+      wanderPause: Math.random() * 5,
+      wanderSpeed: 0.35 + Math.random() * 0.4,
+      wanderRadius: 6 + Math.random() * 6,
       element: null,
     };
   });
@@ -2266,9 +2294,9 @@ function updateExplorerTrail(){
 function chooseNpcWanderTarget(npc){
   const base = npc?.home || npc?.location;
   if(!base) return null;
-  const radius = clampNumber(npc?.wanderRadius, 2, 12);
+  const radius = clampNumber(npc?.wanderRadius, 3, 16);
   const angle = Math.random() * Math.PI * 2;
-  const distance = Math.random() * radius;
+  const distance = (0.35 + Math.random() * 0.65) * radius;
   const offsetX = Math.cos(angle) * distance;
   const offsetY = Math.sin(angle) * distance;
   return {
@@ -2282,7 +2310,7 @@ function updateNpcWandering(dt){
   state.npcs.forEach(npc => {
     if(!npc || !npc.location) return;
     if(typeof npc.wanderPause !== 'number'){
-      npc.wanderPause = Math.random() * 3;
+      npc.wanderPause = Math.random() * 5;
     }
     if(!npc.wanderTarget){
       npc.wanderTarget = chooseNpcWanderTarget(npc);
@@ -2293,18 +2321,18 @@ function updateNpcWandering(dt){
     }
     const target = npc.wanderTarget;
     if(!target){
-      npc.wanderPause = 1.5 + Math.random() * 2.5;
+      npc.wanderPause = 2.5 + Math.random() * 3.5;
       return;
     }
     const dx = target.x - npc.location.x;
     const dy = target.y - npc.location.y;
     const dist = Math.hypot(dx, dy);
     if(dist < 0.12){
-      npc.wanderPause = 1.5 + Math.random() * 4;
+      npc.wanderPause = 2.8 + Math.random() * 4.2;
       npc.wanderTarget = chooseNpcWanderTarget(npc);
       return;
     }
-    const speed = clampNumber(npc.wanderSpeed, 0.35, 1.6) * dt;
+    const speed = clampNumber(npc.wanderSpeed, 0.2, 1) * dt;
     if(speed <= 0){
       npc.wanderTarget = chooseNpcWanderTarget(npc);
       return;
@@ -2373,7 +2401,7 @@ function renderMapTelemetry(){
   const locationName = zone?.name || 'Uncharted stretch';
   const zoneSubtitle = zone?.subtitle || '';
   const zoneSeed = hashString(zone?.name || 'kingdom');
-  const timeScale = 180; // 1 real second = 3 in-world minutes
+  const timeScale = 120; // 1 real second = 2 in-world minutes
   const worldMinutes = (elapsed * timeScale) % (24 * 60);
   const hours = Math.floor(worldMinutes / 60);
   const minutes = Math.floor(worldMinutes % 60);
@@ -2887,7 +2915,7 @@ function handleExplorerCollect(entry){
     quirk: entry.variant?.quirk
   });
   ex.log = ex.log.slice(0, 10);
-  ex.pauseTimer = 2.2;
+  ex.pauseTimer = 3.4;
   ex.pauseDuration = ex.pauseTimer;
   ex.phase = 'collecting';
   ex.lastCollectedTitle = entry.title;
@@ -2907,7 +2935,7 @@ function handleExplorerNpc(npc){
   const selection = selectNpcDialogue(npc) || {};
   const dialogue = selection.dialogue || null;
   const lines = Array.isArray(dialogue?.lines) && dialogue.lines.length ? dialogue.lines.slice(0) : [`${npc.name} shares a quiet exchange.`];
-  const duration = Math.max(2.6, lines.length * 1.4);
+  const duration = Math.max(3.4, lines.length * 1.7);
   ex.pauseTimer = duration;
   ex.pauseDuration = duration;
   ex.phase = 'conversing';
@@ -3031,8 +3059,8 @@ function initExplorer(){
   state.explorer = {
     x: 50,
     y: 50,
-    baseSpeed: 2.5,
-    speed: 2.5,
+    baseSpeed: 1.6,
+    speed: 1.6,
     collected: new Set(),
     routeCollected: new Set(),
     routeSequence: [],
