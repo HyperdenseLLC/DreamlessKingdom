@@ -1748,9 +1748,6 @@ function ensureMapStructure(){
   world.className = 'map-world';
   world.style.setProperty('--map-world-size', `${(MAP_WORLD_SCALE * 100).toFixed(0)}%`);
   viewport.appendChild(world);
-  const topologyLayer = document.createElement('div');
-  topologyLayer.className = 'map-layer map-layer-topology';
-  topologyLayer.setAttribute('aria-hidden', 'true');
   const pathSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   pathSvg.classList.add('map-path');
   pathSvg.setAttribute('viewBox', '0 0 100 100');
@@ -1770,7 +1767,7 @@ function ensureMapStructure(){
   npcLayer.className = 'map-layer map-layer-npcs';
   const actorsLayer = document.createElement('div');
   actorsLayer.className = 'map-layer map-layer-actors';
-  world.append(topologyLayer, pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
+  world.append(pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
   map.appendChild(viewport);
   const detail = document.createElement('div');
   detail.id = 'map-zone-detail';
@@ -1783,7 +1780,6 @@ function ensureMapStructure(){
   map._layers = {
     viewport,
     world,
-    topology: topologyLayer,
     path: { svg: pathSvg, line: pathLine },
     zones: zonesLayer,
     markers: markersLayer,
@@ -1794,50 +1790,81 @@ function ensureMapStructure(){
     telemetry,
   };
   if(state.mapCamera){
+    if(typeof state.mapCamera.manual !== 'boolean'){
+      state.mapCamera.manual = false;
+    }
     world.style.setProperty('--map-offset-x', `${state.mapCamera.offsetX.toFixed(2)}px`);
     world.style.setProperty('--map-offset-y', `${state.mapCamera.offsetY.toFixed(2)}px`);
   }
+  initMapCameraControls(map._layers);
   return map._layers;
 }
 
-function renderMapTopology(layer){
-  if(!layer) return;
-  layer.innerHTML = '';
-  const featuresContainer = document.createElement('div');
-  featuresContainer.className = 'map-topology-features';
-  featuresContainer.setAttribute('aria-hidden', 'true');
-  layer.appendChild(featuresContainer);
-  MAP_TOPOLOGY_FEATURES.forEach(feature => {
-    if(!feature) return;
-    const node = document.createElement('div');
-    const classes = ['map-topology-feature'];
-    if(feature.type){
-      classes.push(`map-topology-${String(feature.type).toLowerCase().replace(/[^a-z0-9-]/g, '-')}`);
+function initMapCameraControls(layers){
+  const viewport = layers?.viewport;
+  const world = layers?.world;
+  if(!viewport || !world) return;
+  if(viewport._cameraControlsInitialized) return;
+  viewport._cameraControlsInitialized = true;
+  let dragPointerId = null;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  const isInteractiveTarget = (node)=>{
+    if(!node) return false;
+    return Boolean(node.closest('button, a, input, textarea, select, .marker, .map-event'));
+  };
+  viewport.addEventListener('pointerdown', (event)=>{
+    if(typeof event.button === 'number' && event.button !== 0) return;
+    if(dragPointerId !== null) return;
+    if(isInteractiveTarget(event.target)) return;
+    dragPointerId = event.pointerId;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    const camera = state.mapCamera ||= { offsetX: 0, offsetY: 0, manual: false };
+    dragOffsetX = camera.offsetX;
+    dragOffsetY = camera.offsetY;
+    camera.manual = true;
+    viewport.classList.add('dragging');
+    if(viewport.setPointerCapture){
+      viewport.setPointerCapture(event.pointerId);
     }
-    node.className = classes.join(' ');
-    node.setAttribute('aria-hidden', 'true');
-    if(feature.id){
-      node.dataset.topologyId = feature.id;
+    event.preventDefault();
+  });
+  viewport.addEventListener('pointermove', (event)=>{
+    if(event.pointerId !== dragPointerId) return;
+    const camera = state.mapCamera ||= { offsetX: 0, offsetY: 0, manual: false };
+    const dx = event.clientX - dragStartX;
+    const dy = event.clientY - dragStartY;
+    const nextX = dragOffsetX + dx;
+    const nextY = dragOffsetY + dy;
+    camera.manual = true;
+    updateMapCamera({ immediate: true, targetOffsets: { x: nextX, y: nextY } });
+  });
+  const endDrag = (event)=>{
+    if(dragPointerId === null) return;
+    if(event && event.pointerId !== dragPointerId) return;
+    if(viewport.releasePointerCapture && dragPointerId !== null){
+      try {
+        viewport.releasePointerCapture(dragPointerId);
+      } catch (err) {
+        // Ignore release errors when pointer is already released.
+      }
     }
-    if(feature.name){
-      node.dataset.topologyName = feature.name;
-    }
-    if(feature.type){
-      node.dataset.topologyType = feature.type;
-    }
-    const pos = projectIsoPoint(feature.x, feature.y);
-    const size = projectIsoSize(feature.width, feature.height || feature.width);
-    node.style.left = `${pos.left}%`;
-    node.style.top = `${pos.top}%`;
-    node.style.width = `${size.width}%`;
-    node.style.height = `${size.height}%`;
-    if(Number.isFinite(feature.rotation)){
-      node.style.setProperty('--topology-rotation', `${feature.rotation}deg`);
-    }
-    if(Number.isFinite(feature.intensity)){
-      node.style.setProperty('--topology-intensity', feature.intensity);
-    }
-    featuresContainer.appendChild(node);
+    dragPointerId = null;
+    viewport.classList.remove('dragging');
+    updateMapCamera({ immediate: true });
+  };
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+  viewport.addEventListener('pointerleave', endDrag);
+  viewport.addEventListener('dblclick', (event)=>{
+    if(isInteractiveTarget(event.target)) return;
+    const camera = state.mapCamera ||= { offsetX: 0, offsetY: 0, manual: false };
+    camera.manual = false;
+    updateMapCamera({ immediate: true, force: true });
+    event.preventDefault();
   });
 }
 
@@ -2019,8 +2046,7 @@ function renderMapMarkers(){
   if(!map) return;
   const layers = ensureMapStructure();
   if(!layers) return;
-  const { topology, zones, markers, npcs, events } = layers;
-  renderMapTopology(topology);
+  const { zones, markers, npcs, events } = layers;
   renderMapZones(zones);
   markers.innerHTML = '';
   if(npcs) npcs.innerHTML = '';
@@ -2669,9 +2695,7 @@ function renderExplorerElement(){
   updateMapCamera();
 }
 
-function updateMapCamera({ immediate = false } = {}){
-  const ex = state.explorer;
-  if(!ex) return;
+function updateMapCamera({ immediate = false, force = false, targetOffsets = null } = {}){
   const layers = ensureMapStructure();
   if(!layers?.viewport || !layers?.world) return;
   const viewport = layers.viewport;
@@ -2681,30 +2705,49 @@ function updateMapCamera({ immediate = false } = {}){
   const worldWidth = world.clientWidth;
   const worldHeight = world.clientHeight;
   if(!viewportWidth || !viewportHeight || !worldWidth || !worldHeight) return;
-  const pos = projectIsoPoint(ex.x, ex.y);
-  const targetX = (pos.left / 100) * worldWidth;
-  const targetY = (pos.top / 100) * worldHeight;
-  const offsetX = viewportWidth / 2 - targetX;
-  const offsetY = viewportHeight / 2 - targetY;
+  const camera = state.mapCamera ||= { offsetX: 0, offsetY: 0, manual: false };
+  const clampOffset = (value, max)=>Math.max(-max, Math.min(max, value));
   const maxOffsetX = Math.max(0, (worldWidth - viewportWidth) / 2);
   const maxOffsetY = Math.max(0, (worldHeight - viewportHeight) / 2);
-  const desiredX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX));
-  const desiredY = Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY));
-  let camera = state.mapCamera;
-  if(!camera || immediate){
-    camera = state.mapCamera = { offsetX: desiredX, offsetY: desiredY };
+  let desiredX = clampOffset(camera.offsetX, maxOffsetX);
+  let desiredY = clampOffset(camera.offsetY, maxOffsetY);
+  if(targetOffsets){
+    desiredX = clampOffset(targetOffsets.x, maxOffsetX);
+    desiredY = clampOffset(targetOffsets.y, maxOffsetY);
+    camera.manual = true;
+  } else if(force || !camera.manual){
+    const ex = state.explorer;
+    if(ex){
+      const pos = projectIsoPoint(ex.x, ex.y);
+      const targetX = (pos.left / 100) * worldWidth;
+      const targetY = (pos.top / 100) * worldHeight;
+      const offsetX = viewportWidth / 2 - targetX;
+      const offsetY = viewportHeight / 2 - targetY;
+      desiredX = clampOffset(offsetX, maxOffsetX);
+      desiredY = clampOffset(offsetY, maxOffsetY);
+    }
+    if(force){
+      camera.manual = false;
+    }
+  } else {
+    desiredX = clampOffset(camera.offsetX, maxOffsetX);
+    desiredY = clampOffset(camera.offsetY, maxOffsetY);
   }
-  const lerpFactor = immediate ? 1 : 0.22;
-  const nextX = immediate ? desiredX : camera.offsetX + (desiredX - camera.offsetX) * lerpFactor;
-  const nextY = immediate ? desiredY : camera.offsetY + (desiredY - camera.offsetY) * lerpFactor;
+  const lerpFactor = (immediate || targetOffsets) ? 1 : 0.22;
+  const nextX = immediate || targetOffsets
+    ? desiredX
+    : camera.offsetX + (desiredX - camera.offsetX) * lerpFactor;
+  const nextY = immediate || targetOffsets
+    ? desiredY
+    : camera.offsetY + (desiredY - camera.offsetY) * lerpFactor;
   camera.offsetX = Math.abs(nextX - desiredX) < 0.1 ? desiredX : nextX;
   camera.offsetY = Math.abs(nextY - desiredY) < 0.1 ? desiredY : nextY;
-  if(immediate){
+  if(immediate || targetOffsets){
     world.classList.add('no-transition');
   }
   world.style.setProperty('--map-offset-x', `${camera.offsetX.toFixed(2)}px`);
   world.style.setProperty('--map-offset-y', `${camera.offsetY.toFixed(2)}px`);
-  if(immediate){
+  if(immediate || targetOffsets){
     requestAnimationFrame(()=> world.classList.remove('no-transition'));
   }
 }
