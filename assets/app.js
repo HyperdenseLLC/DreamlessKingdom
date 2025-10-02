@@ -11,6 +11,8 @@ const state = {
   npcs: [],
   selectedZone: null,
   mapCamera: null,
+  activeEvents: [],
+  bloomDormant: new Map(),
 };
 
 const LABEL_PLACEMENTS = new Map();
@@ -30,6 +32,14 @@ const SCENE_EVENTS = [
     npcBias: 0.08,
     status: 'Aurora surge guiding the route',
     logNote: 'Ley-lines amplifying pace',
+    type: 'phenomenon',
+    glyph: [
+      ' /\\ ',
+      '<**>',
+      ' \/ ',
+    ],
+    mapDuration: 24,
+    mapLabel: 'Auroral surge flare',
   },
   {
     id: 'veilwind-fog',
@@ -41,6 +51,17 @@ const SCENE_EVENTS = [
     npcBias: 0.22,
     status: 'Navigating veilwind fog',
     logNote: 'NPC encounters favored',
+    type: 'weather',
+    requiresShelter: true,
+    shelterDuration: 6.2,
+    redirectType: 'npc',
+    glyph: [
+      '~~~~',
+      '::::',
+      '~~~~',
+    ],
+    mapDuration: 28,
+    mapLabel: 'Veilwind fog bank',
   },
   {
     id: 'festival-rally',
@@ -52,7 +73,103 @@ const SCENE_EVENTS = [
     npcBias: 0.32,
     status: 'Festival rally rippling through streets',
     logNote: 'Caravan guidance engaged',
-  }
+    type: 'encounter',
+    redirectType: 'npc',
+    disruptDuration: 4.2,
+    glyph: [
+      '[=^=]',
+      ' /|\\ ',
+      ' / \\ ',
+    ],
+    mapDuration: 22,
+    mapLabel: 'Festival rally procession',
+  },
+  {
+    id: 'shelterfront-squall',
+    title: 'Shelterfront Squall',
+    summary: 'Slate rain lashes the route, forcing the surveyor to dive beneath vaulted arcades for cover.',
+    duration: 32,
+    cooldown: 78,
+    speedMultiplier: 0.7,
+    npcBias: 0.12,
+    status: 'Racing the shelterfront squall',
+    logNote: 'Seeking shelter from the storm',
+    type: 'weather',
+    requiresShelter: true,
+    shelterDuration: 7.5,
+    redirectType: 'npc',
+    glyph: [
+      '.::. ',
+      '//\\',
+      '\\//',
+    ],
+    mapDuration: 26,
+    mapLabel: 'Shelterfront squall',
+  },
+  {
+    id: 'nomad-crossing',
+    title: 'Nomad Crossing',
+    summary: 'Nomad barges annex the causeway and barter new detours toward hidden curios.',
+    duration: 24,
+    cooldown: 70,
+    speedMultiplier: 0.92,
+    npcBias: 0.18,
+    status: 'Detouring around nomad crossings',
+    logNote: 'Route redirected by traders',
+    type: 'encounter',
+    redirectType: 'entry',
+    redirectCategory: 'Curio',
+    disruptDuration: 3.6,
+    glyph: [
+      '==o==',
+      ' /|\\ ',
+      '_/ \\_',
+    ],
+    mapDuration: 20,
+    mapLabel: 'Nomad crossing detour',
+  },
+  {
+    id: 'murmur-bloom',
+    title: 'Murmur Bloom',
+    summary: 'Whispering groves exhale spores, cycling older growth back beneath the soil.',
+    duration: 30,
+    cooldown: 76,
+    speedMultiplier: 0.96,
+    npcBias: 0.04,
+    status: 'Cataloguing murmuring bloom beds',
+    logNote: 'Dormant flora awaiting return',
+    type: 'bloom',
+    bloomDormancyCount: 3,
+    bloomDormancyDuration: 24,
+    glyph: [
+      ' .*. ',
+      '(::)',
+      ' \/ ',
+    ],
+    mapDuration: 24,
+    mapLabel: 'Murmur bloom cycle',
+  },
+  {
+    id: 'ashen-fallow',
+    title: 'Ashen Fallow',
+    summary: 'A hush ripples through the arboretum as petals crumble, promising clustered regrowth later.',
+    duration: 36,
+    cooldown: 82,
+    speedMultiplier: 0.88,
+    npcBias: 0.06,
+    status: 'Tracing ashen fallow fields',
+    logNote: 'Flora entering fallow phase',
+    type: 'bloom',
+    bloomDormancyCount: 4,
+    bloomDormancyDuration: 30,
+    glyph: [
+      '\\..//',
+      '.xx.',
+      '//..\\',
+    ],
+    mapDuration: 28,
+    mapLabel: 'Ashen fallow cycle',
+  },
 ];
 
 const ISO_PROJECTION = (()=>{
@@ -1397,6 +1514,20 @@ function pick(list, rng){
   return list[Math.min(index, list.length - 1)];
 }
 
+function pickMany(list, count){
+  if(!Array.isArray(list) || !list.length || count <= 0) return [];
+  const pool = list.slice();
+  const result = [];
+  while(pool.length && result.length < count){
+    const index = Math.floor(Math.random() * pool.length);
+    const [item] = pool.splice(index, 1);
+    if(item != null){
+      result.push(item);
+    }
+  }
+  return result;
+}
+
 function weightedPick(list, rng){
   const total = list.reduce((sum, item)=> sum + item.weight, 0);
   let r = rng() * total;
@@ -1530,6 +1661,25 @@ function clampNumber(value, min, max){
   return Math.min(max, Math.max(min, value));
 }
 
+function scatterCoordinate(base, radius = 6){
+  const origin = base && Number.isFinite(base.x) && Number.isFinite(base.y)
+    ? { x: base.x, y: base.y }
+    : { x: 50, y: 50 };
+  const r = Math.max(0, Number.isFinite(radius) ? radius : 0);
+  if(r === 0){
+    return {
+      x: clampNumber(origin.x, 4, 96),
+      y: clampNumber(origin.y, 4, 96),
+    };
+  }
+  const angle = Math.random() * Math.PI * 2;
+  const distance = Math.random() * r;
+  return {
+    x: clampNumber(origin.x + Math.cos(angle) * distance, 4, 96),
+    y: clampNumber(origin.y + Math.sin(angle) * distance, 4, 96),
+  };
+}
+
 function ensureMapStructure(){
   const map = document.querySelector('#map');
   if(!map) return null;
@@ -1557,11 +1707,13 @@ function ensureMapStructure(){
   zonesLayer.className = 'map-layer map-layer-zones';
   const markersLayer = document.createElement('div');
   markersLayer.className = 'map-layer map-layer-markers';
+  const eventsLayer = document.createElement('div');
+  eventsLayer.className = 'map-layer map-layer-events';
   const npcLayer = document.createElement('div');
   npcLayer.className = 'map-layer map-layer-npcs';
   const actorsLayer = document.createElement('div');
   actorsLayer.className = 'map-layer map-layer-actors';
-  world.append(ground, pathSvg, zonesLayer, markersLayer, npcLayer, actorsLayer);
+  world.append(ground, pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
   map.appendChild(viewport);
   const detail = document.createElement('div');
   detail.id = 'map-zone-detail';
@@ -1578,6 +1730,7 @@ function ensureMapStructure(){
     path: { svg: pathSvg, line: pathLine },
     zones: zonesLayer,
     markers: markersLayer,
+    events: eventsLayer,
     npcs: npcLayer,
     actors: actorsLayer,
     detail,
@@ -1695,18 +1848,59 @@ function renderMapZoneDetail(){
   }
 }
 
+function renderMapEvents(layer){
+  if(!layer) return;
+  layer.innerHTML = '';
+  const events = Array.isArray(state.activeEvents) ? state.activeEvents : [];
+  events.forEach(event => {
+    if(!event) return;
+    const marker = document.createElement('div');
+    const typeClass = event.type
+      ? `type-${String(event.type).toLowerCase().replace(/[^a-z0-9-]/g, '-')}`
+      : 'type-generic';
+    marker.className = `map-event ${typeClass}`;
+    const pos = projectIsoPoint(event.x, event.y);
+    marker.style.left = `${pos.left}%`;
+    marker.style.top = `${pos.top}%`;
+    marker.setAttribute('role', 'img');
+    if(event.ariaLabel){
+      marker.setAttribute('aria-label', event.ariaLabel);
+    } else if(event.title){
+      marker.setAttribute('aria-label', event.title);
+    }
+    if(event.title){
+      const summaryLine = event.summary ? `\n${event.summary}` : '';
+      marker.title = `${event.title}${summaryLine}`;
+    } else if(event.summary){
+      marker.title = event.summary;
+    }
+    const art = document.createElement('pre');
+    art.textContent = event.glyph || '[]';
+    marker.appendChild(art);
+    if(event.caption){
+      const caption = document.createElement('span');
+      caption.className = 'map-event-caption';
+      caption.textContent = event.caption;
+      marker.appendChild(caption);
+    }
+    layer.appendChild(marker);
+  });
+}
+
 function renderMapMarkers(){
   const map = document.querySelector('#map');
   if(!map) return;
   const layers = ensureMapStructure();
   if(!layers) return;
-  const { zones, markers, npcs } = layers;
+  const { zones, markers, npcs, events } = layers;
   renderMapZones(zones);
   markers.innerHTML = '';
   if(npcs) npcs.innerHTML = '';
   state.npcs.forEach(npc => { if(npc) npc.element = null; });
   const filteredIds = new Set(state.filtered.map(e=>e.id));
+  const dormant = state.bloomDormant instanceof Map ? state.bloomDormant : null;
   state.entries.filter(e=>e.location).forEach(e=>{
+    if(dormant?.has(e.id)) return;
     const marker = document.createElement('button');
     const classes = ['marker'];
     if(!filteredIds.has(e.id)) classes.push('dim');
@@ -1754,8 +1948,142 @@ function renderMapMarkers(){
   } else {
     layers.actors.innerHTML = '';
   }
+  if(events){
+    renderMapEvents(events);
+  }
   updateExplorerTrail();
   requestAnimationFrame(resolveMapLabelCollisions);
+}
+
+function spawnMapEvent(event, options = {}){
+  if(!event) return null;
+  if(!Array.isArray(state.activeEvents)) state.activeEvents = [];
+  const explorer = state.explorer;
+  const baseAnchor = options.anchor || event.mapLocation || {
+    x: explorer?.x ?? 50,
+    y: explorer?.y ?? 50,
+  };
+  const jitter = Number.isFinite(options.jitter)
+    ? options.jitter
+    : (Number.isFinite(event.mapJitter) ? event.mapJitter : 7);
+  const position = scatterCoordinate(baseAnchor, jitter);
+  const glyph = Array.isArray(event.glyph)
+    ? event.glyph.join('\n')
+    : (event.glyph || '[]');
+  const ttlSource = Number.isFinite(options.duration)
+    ? options.duration
+    : (Number.isFinite(event.mapDuration)
+      ? event.mapDuration
+      : (Number.isFinite(event.duration) ? Math.max(6, event.duration * 0.6) : 18));
+  const ttl = Number.isFinite(ttlSource) ? Math.max(1, ttlSource) : Number.POSITIVE_INFINITY;
+  const instance = {
+    id: `${event.id || 'event'}:${Date.now()}:${Math.floor(Math.random() * 1000)}`,
+    sourceId: event.id || null,
+    title: event.title || '',
+    summary: event.summary || '',
+    type: event.type || 'phenomenon',
+    glyph,
+    caption: event.caption || options.caption || '',
+    ariaLabel: event.mapLabel || event.ariaLabel || event.title || '',
+    x: position.x,
+    y: position.y,
+    ttl,
+  };
+  state.activeEvents.push(instance);
+  const layers = ensureMapStructure();
+  if(layers?.events){
+    renderMapEvents(layers.events);
+  }
+  return instance;
+}
+
+function spawnBloomRegrowth(info){
+  const anchor = info?.origin || info?.entry?.location || { x: 50, y: 50 };
+  return spawnMapEvent({
+    id: `regrowth-${info?.entry?.id || Date.now()}`,
+    title: info?.entry?.title ? `${info.entry.title} Regrowth` : 'Floral Regrowth',
+    summary: 'Fresh shoots spark a new cluster nearby.',
+    type: 'bloom',
+    glyph: [
+      ' .^. ',
+      '< * >',
+      '  |  ',
+    ],
+    mapDuration: 16 + Math.random() * 6,
+    mapLabel: info?.entry?.title
+      ? `${info.entry.title} regrowth cluster`
+      : 'Floral regrowth cluster',
+    caption: 'Regrowth',
+  }, { anchor, jitter: 4 });
+}
+
+function logBloomRegrowth(info){
+  const ex = state.explorer;
+  if(!ex) return;
+  const title = info?.entry?.title ? `${info.entry.title} Regrowth` : 'Floral Regrowth';
+  ex.log.unshift({
+    type: 'scene',
+    id: `scene:regrowth:${info?.entry?.id || Date.now()}`,
+    title,
+    summary: 'Dormant beds awaken and cluster anew.',
+    note: 'Bloom cycle renewed',
+    time: new Date(),
+  });
+  ex.log = ex.log.slice(0, 10);
+  renderExplorerLog();
+}
+
+function updateBloomDormancy(dt){
+  const dormant = state.bloomDormant;
+  if(!(dormant instanceof Map) || dormant.size === 0) return;
+  const regrowthQueue = [];
+  dormant.forEach((info, id) => {
+    if(!info) return;
+    const next = Math.max(0, (Number.isFinite(info.timer) ? info.timer : 0) - dt);
+    info.timer = next;
+    if(next === 0){
+      dormant.delete(id);
+      regrowthQueue.push(info);
+    }
+  });
+  if(regrowthQueue.length){
+    renderMapMarkers();
+    regrowthQueue.forEach(info => {
+      spawnBloomRegrowth(info);
+      logBloomRegrowth(info);
+    });
+  }
+}
+
+function updateActiveEvents(dt){
+  const events = Array.isArray(state.activeEvents) ? state.activeEvents : [];
+  let needsRender = false;
+  if(events.length){
+    events.forEach(event => {
+      if(!event) return;
+      if(Number.isFinite(event.ttl)){
+        const next = Math.max(0, event.ttl - dt);
+        if(next !== event.ttl){
+          event.ttl = next;
+          if(next === 0){
+            event.expired = true;
+          }
+        }
+      }
+    });
+    const active = events.filter(event => !event?.expired);
+    if(active.length !== events.length){
+      state.activeEvents = active;
+      needsRender = true;
+    }
+  }
+  if(needsRender){
+    const layers = ensureMapStructure();
+    if(layers?.events){
+      renderMapEvents(layers.events);
+    }
+  }
+  updateBloomDormancy(dt);
 }
 
 function resolveMapLabelCollisions(){
@@ -2812,6 +3140,84 @@ function hasNewNpcDialogue(npc){
   return !!(result && result.isNew);
 }
 
+function startBloomDormancy(event){
+  if(!event) return;
+  if(!(state.bloomDormant instanceof Map)) state.bloomDormant = new Map();
+  const plantEntries = state.entries.filter(entry => {
+    if(!entry?.location) return false;
+    const category = String(entry.category || '').toLowerCase();
+    return category === 'plant';
+  });
+  if(!plantEntries.length) return;
+  const available = plantEntries.filter(entry => !state.bloomDormant.has(entry.id));
+  const pool = available.length ? available : plantEntries;
+  const desiredCount = Number.isFinite(event.bloomDormancyCount)
+    ? Math.max(1, Math.min(pool.length, Math.round(event.bloomDormancyCount)))
+    : Math.max(1, Math.min(pool.length, Math.round(pool.length * 0.12)));
+  const selected = pickMany(pool, desiredCount);
+  if(!selected.length) return;
+  const baseDuration = Number.isFinite(event.bloomDormancyDuration)
+    ? event.bloomDormancyDuration
+    : Math.max(12, (event.duration || 24) * 0.8);
+  selected.forEach(entry => {
+    if(!entry?.id || state.bloomDormant.has(entry.id)) return;
+    const duration = baseDuration * (0.6 + Math.random() * 0.7);
+    state.bloomDormant.set(entry.id, {
+      timer: duration,
+      entry,
+      origin: entry.location,
+      eventId: event.id,
+    });
+    spawnMapEvent({
+      id: `${event.id || 'bloom'}-wilt-${entry.id}`,
+      title: `${entry.title} Dormancy`,
+      summary: `${entry.title} withdraws beneath the soil.`,
+      type: 'bloom-wilt',
+      glyph: [
+        '\\|//',
+        ' xx ',
+        '//|\\',
+      ],
+      mapDuration: duration,
+      mapLabel: `${entry.title} dormant cluster`,
+      caption: 'Dormant',
+    }, { anchor: entry.location, jitter: 2 });
+  });
+  renderMapMarkers();
+}
+
+function applySceneEventEffects(event){
+  const ex = state.explorer;
+  if(!ex || !event) return;
+  if(event.type === 'weather' && event.requiresShelter){
+    const shelterPause = Math.max(event.shelterDuration || 5.5, 4) + Math.random() * 1.5;
+    ex.pauseTimer = Math.max(ex.pauseTimer || 0, shelterPause);
+    ex.pauseDuration = ex.pauseTimer;
+    ex.phase = 'idle';
+    ex.target = null;
+    ex.pendingRedirect = {
+      type: event.redirectType || 'npc',
+      reason: 'shelter',
+    };
+  } else if(event.type === 'encounter'){
+    const disruption = Math.max(event.disruptDuration || 3.5, 2.5) + Math.random() * 1.5;
+    ex.pauseTimer = Math.max(ex.pauseTimer || 0, disruption);
+    ex.pauseDuration = ex.pauseTimer;
+    ex.phase = 'idle';
+    ex.target = null;
+    if(event.redirectType){
+      ex.pendingRedirect = {
+        type: event.redirectType,
+        category: event.redirectCategory || null,
+        region: event.redirectRegion || null,
+        reason: 'encounter',
+      };
+    }
+  } else if(event.type === 'bloom'){
+    startBloomDormancy(event);
+  }
+}
+
 function triggerSceneEvent(){
   const ex = state.explorer;
   if(!ex || !SCENE_EVENTS.length) return;
@@ -2828,6 +3234,8 @@ function triggerSceneEvent(){
     npcBias: Math.max(0, choice.npcBias || 0),
   };
   ex.speed = ex.baseSpeed * (choice.speedMultiplier || 1);
+  const sceneMarker = spawnMapEvent(choice);
+  applySceneEventEffects(choice, sceneMarker);
   ex.log.unshift({
     type: 'scene',
     id: `scene:${choice.id}:${Date.now()}`,
@@ -2867,6 +3275,43 @@ function pickExplorerTarget(){
   const npcsWithNew = npcCandidates.filter(hasNewNpcDialogue);
   const npcBias = Math.min(0.6, Math.max(0, ex.sceneInfluence?.npcBias || 0));
   const npcChance = Math.min(0.85, 0.22 + npcBias);
+  const redirect = ex.pendingRedirect;
+  if(redirect){
+    ex.pendingRedirect = null;
+    let nextTarget = null;
+    if(redirect.type === 'npc' && npcCandidates.length){
+      let pool = npcCandidates.slice();
+      if(redirect.region){
+        const filtered = pool.filter(npc => npc.location?.region === redirect.region);
+        if(filtered.length) pool = filtered;
+      }
+      if(pool.length){
+        const npc = pool[Math.floor(Math.random() * pool.length)];
+        nextTarget = { type: 'npc', npc };
+      }
+    } else if(redirect.type === 'entry' && entryPool.length){
+      let pool = entryPool.slice();
+      if(redirect.category){
+        const filtered = pool.filter(entry => entry.category === redirect.category);
+        if(filtered.length) pool = filtered;
+      }
+      if(redirect.region){
+        const filtered = pool.filter(entry => entry.location?.region === redirect.region);
+        if(filtered.length) pool = filtered;
+      }
+      if(pool.length){
+        const entry = pool[Math.floor(Math.random() * pool.length)];
+        nextTarget = { type: 'entry', entry };
+      }
+    }
+    if(nextTarget){
+      ex.target = nextTarget;
+      ex.phase = 'travel';
+      renderExplorerStatus();
+      renderMapMarkers();
+      return;
+    }
+  }
   let nextTarget = null;
   if(npcsWithNew.length){
     const npc = npcsWithNew[Math.floor(Math.random() * npcsWithNew.length)];
@@ -2974,6 +3419,7 @@ function explorerStep(ts){
   ex.lastTick = ts;
   ex.elapsedTime = (ex.elapsedTime || 0) + dt;
   updateNpcWandering(dt);
+  updateActiveEvents(dt);
   ex.telemetryTimer = (ex.telemetryTimer || 0) + dt;
   if(ex.telemetryTimer >= 0.5){
     ex.telemetryTimer = 0;
@@ -3056,6 +3502,8 @@ function initExplorer(){
     cancelAnimationFrame(state.explorerFrame);
     state.explorerFrame = null;
   }
+  state.activeEvents = [];
+  state.bloomDormant = new Map();
   state.explorer = {
     x: 50,
     y: 50,
@@ -3085,6 +3533,7 @@ function initExplorer(){
     sceneCooldown: 14,
     elapsedTime: 0,
     telemetryTimer: 0,
+    pendingRedirect: null,
   };
   ensureExplorerElement();
   recordExplorerPosition(true);
