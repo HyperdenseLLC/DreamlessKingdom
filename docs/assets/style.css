@@ -25,13 +25,26 @@ button:hover{border-color:var(--accent)}
 .map-wrapper{margin:28px 0;background:linear-gradient(135deg,#10182b,#181f33);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 14px 32px rgba(0,0,0,.25)}
 .map-header{display:flex;flex-direction:column;gap:4px;margin-bottom:16px}
 .map-header h2{margin:0;font-size:20px}
-.map{position:relative;width:100%;aspect-ratio:16/10;max-height:520px;border:1px solid var(--line);border-radius:18px;background:radial-gradient(circle at 30% 20%, rgba(224,177,65,.25), transparent 45%), radial-gradient(circle at 70% 70%, rgba(111,203,255,.18), transparent 50%), linear-gradient(160deg,#0f1524,#12192a 40%,#10152b 100%);overflow:hidden}
-.map::after{content:'';position:absolute;inset:0;background-image:linear-gradient(0deg,rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:14% 14%;opacity:.35;pointer-events:none}
-.marker{position:absolute;transform:translate(-50%,-50%);width:clamp(14px,1.8vw,22px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.8);background:var(--accent);box-shadow:0 0 0 0 rgba(224,177,65,.6);animation:pulse 3s infinite;cursor:pointer;display:grid;place-items:center}
+.map{position:relative;width:100%;aspect-ratio:20/9;max-height:520px;border:1px solid rgba(124,111,167,.35);border-radius:20px;background:radial-gradient(circle at 22% 18%, rgba(212,175,65,.18), transparent 62%), radial-gradient(circle at 82% 72%, rgba(117,198,255,.18), transparent 60%), linear-gradient(175deg,#0b1120 15%,#0f1628 55%,#080f1d 100%);overflow:hidden;box-shadow:0 22px 46px rgba(0,0,0,.45)}
+.map::before{content:'';position:absolute;inset:6% 8% 12%;background:radial-gradient(circle at 50% 18%, rgba(255,255,255,.14), transparent 70%);filter:blur(28px);opacity:.35;pointer-events:none;z-index:1}
+.map::after{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(150deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 22px),repeating-linear-gradient(30deg,rgba(255,255,255,.035) 0,rgba(255,255,255,.035) 1px,transparent 1px,transparent 22px);opacity:.26;pointer-events:none;z-index:2;mix-blend-mode:screen}
+.map>.map-topography{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;opacity:.95;z-index:1;display:block}
+.map .map-topography .landmass,.map .map-topography .landmass-outline{stroke-linejoin:round;stroke-linecap:round}
+.map .map-topography .landmass{stroke:rgba(88,164,206,.28);stroke-width:4px;fill-opacity:.82}
+.map .map-topography .landmass-outline{stroke:rgba(140,208,248,.24);stroke-width:2.4px;fill-opacity:.94}
+.map .map-topography .contour{fill:none;stroke:rgba(122,198,248,.28);stroke-width:2px;stroke-linecap:round;stroke-linejoin:round}
+.map .map-topography .contour.contour-major{stroke:rgba(126,202,255,.35)}
+.map .map-topography .contour.contour-tight{stroke-width:1.6px;stroke:rgba(154,216,255,.32)}
+.map .map-topography .contour.contour-fine{stroke-width:1.1px;stroke:rgba(164,224,255,.22);stroke-dasharray:14 10}
+.map .map-topography .ridge{fill:none;stroke:url(#terrain-ridge);stroke-width:2.3px;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.map .map-topography .river{fill:none;stroke:rgba(102,198,255,.68);stroke-width:3.2px;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 12px rgba(90,180,255,.35))}
+.map .map-topography .lake{fill:rgba(70,144,190,.45);stroke:rgba(140,208,248,.45);stroke-width:1.3px}
+.map .map-topography .glow{fill:none;stroke:rgba(200,228,255,.16);stroke-width:12px;stroke-linecap:round;filter:blur(1.2px)}
+.map .map-topography .island{fill:rgba(38,74,102,.9);stroke:rgba(140,202,236,.4);stroke-width:1.4px}
+.marker{position:absolute;transform:translate(-50%,-50%);width:clamp(14px,1.8vw,22px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.8);background:var(--accent);box-shadow:0 0 0 0 rgba(224,177,65,.6);animation:pulse 3s infinite;cursor:pointer;display:grid;place-items:center;z-index:3}
 .marker:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .marker span{position:absolute;width:40%;height:40%;border-radius:50%;background:#121622}
 .marker.dim{background:rgba(147,152,172,.65);border-color:rgba(211,214,224,.4);box-shadow:none;animation:none}
-.map-topography-ascii{position:absolute;inset:0;margin:0;padding:8% 6%;font-family:'Fira Code','Source Code Pro','Inconsolata',monospace;font-size:clamp(.36rem,.6vw,.56rem);line-height:1.05;letter-spacing:.06em;white-space:pre;text-align:center;color:rgba(144,196,228,.55);text-shadow:0 0 14px rgba(48,118,176,.24);mix-blend-mode:screen;pointer-events:none;opacity:.92}
 .map-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;color:var(--muted)}
 .legend-item{display:inline-flex;align-items:center;gap:6px}
 .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);border:1px solid rgba(255,255,255,.8)}

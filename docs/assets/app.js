@@ -7,32 +7,80 @@ const state = {
   tag: 'All',
 };
 
-const WORLD_TOPOGRAPHY = Object.freeze({
-  gridWidth: 64,
-  gridHeight: 36,
-  seed: 0.618,
-});
+const STATIC_TOPOGRAPHY_SVG = `
+  <svg class="map-topography" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="terrain-water" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#071018"/>
+        <stop offset="55%" stop-color="#0b1826"/>
+        <stop offset="100%" stop-color="#050b13"/>
+      </linearGradient>
+      <radialGradient id="terrain-glow" cx="52%" cy="38%" r="62%">
+        <stop offset="0%" stop-color="#1f3b54" stop-opacity="0.9"/>
+        <stop offset="60%" stop-color="#142941" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#0b1826" stop-opacity="0.7"/>
+      </radialGradient>
+      <linearGradient id="terrain-fill" x1="32%" y1="12%" x2="78%" y2="88%">
+        <stop offset="0%" stop-color="#1f3951"/>
+        <stop offset="40%" stop-color="#203c4c"/>
+        <stop offset="100%" stop-color="#122332"/>
+      </linearGradient>
+      <linearGradient id="terrain-ridge" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#3d8fb6" stop-opacity="0.85"/>
+        <stop offset="50%" stop-color="#6abbe0" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#3682ab" stop-opacity="0.85"/>
+      </linearGradient>
+      <filter id="terrain-haze" x="-15%" y="-15%" width="130%" height="130%">
+        <feGaussianBlur stdDeviation="18" result="blur"/>
+        <feBlend in="blur" in2="SourceGraphic" mode="screen"/>
+      </filter>
+    </defs>
+    <rect width="1200" height="720" fill="url(#terrain-water)"/>
+    <g class="land" filter="url(#terrain-haze)">
+      <path class="landmass" d="M132 484C134 356 244 272 398 242C512 220 624 170 734 182C850 196 938 262 970 338C1004 418 956 508 890 566C822 626 712 642 610 616C520 594 462 618 376 610C268 600 168 564 132 484Z" fill="url(#terrain-glow)"/>
+      <path class="landmass-outline" d="M152 470C154 366 250 292 396 262C500 240 612 188 722 198C826 208 904 266 932 330C962 396 926 472 868 524C812 576 710 596 618 574C520 550 462 574 384 566C288 556 190 528 152 470Z" fill="url(#terrain-fill)"/>
+    </g>
+    <g class="contours">
+      <path class="contour contour-major" d="M188 470C198 382 296 320 428 292C528 270 622 238 708 248C782 256 846 288 876 338C912 398 874 466 822 516C770 566 688 584 604 564C520 544 462 566 394 558C306 548 224 520 188 470Z"/>
+      <path class="contour contour-major" d="M236 470C248 396 320 348 430 320C512 300 596 276 674 286C734 294 786 320 810 356C842 404 812 458 770 496C726 536 656 548 586 532C514 516 460 534 400 526C324 516 266 502 236 470Z"/>
+      <path class="contour contour-tight" d="M292 468C304 410 360 368 448 348C520 332 586 320 642 330C688 338 726 356 742 382C764 420 740 456 706 486C670 516 612 524 556 510C502 496 460 510 410 502C356 494 312 486 292 468Z"/>
+      <path class="contour contour-tight" d="M338 468C348 426 394 392 460 378C516 366 570 360 612 368C646 374 676 388 688 410C704 438 686 466 660 490C632 514 584 520 540 506C494 492 458 504 420 498C380 492 350 484 338 468Z"/>
+      <path class="contour contour-fine" d="M382 470C390 440 424 414 474 404C514 396 552 392 586 398C612 402 636 414 644 430C656 452 642 474 620 494C596 514 560 518 526 508C494 498 462 508 432 504C406 500 390 490 382 470Z"/>
+      <path class="contour contour-fine" d="M430 470C438 448 464 432 500 426C530 422 560 420 582 424C602 428 620 438 626 450C636 468 624 486 604 500C582 516 552 518 526 508C502 500 474 510 450 506C438 504 432 492 430 470Z"/>
+      <path class="contour contour-major" d="M322 404C350 352 420 314 510 300C580 290 642 292 694 304C742 314 782 338 802 366"/>
+      <path class="contour contour-fine" d="M264 426C292 366 366 320 468 304"/>
+      <path class="contour contour-fine" d="M526 286C582 276 648 276 698 286"/>
+    </g>
+    <g class="ridges">
+      <path class="ridge" d="M332 344C378 310 454 286 544 278C626 270 710 284 772 320"/>
+      <path class="ridge" d="M364 310C430 268 536 244 640 250C706 254 764 272 806 298"/>
+    </g>
+    <g class="waterways">
+      <path class="river" d="M520 520C552 486 562 452 560 418C558 374 582 338 636 312"/>
+      <path class="river" d="M468 496C500 462 506 426 498 390"/>
+      <path class="lake" d="M646 370C662 354 692 348 712 360C732 372 732 396 716 414C700 432 666 438 648 424C632 412 630 388 646 370Z"/>
+      <path class="lake" d="M424 432C438 420 460 416 476 424C492 432 492 450 478 462C464 474 440 478 426 468C414 460 412 444 424 432Z"/>
+    </g>
+    <g class="highlights">
+      <path class="glow" d="M300 516C360 556 452 578 548 576C644 574 720 548 786 494"/>
+      <path class="glow" d="M248 448C292 378 380 326 496 310"/>
+    </g>
+    <g class="islands">
+      <path class="island" d="M968 420C984 404 1008 398 1028 406C1048 414 1052 432 1038 446C1024 460 996 466 978 456C962 448 954 434 968 420Z"/>
+      <path class="island" d="M204 308C214 296 234 292 250 298C266 304 268 320 256 332C244 344 222 348 208 340C196 334 194 320 204 308Z"/>
+    </g>
+  </svg>
+`;
 
-const WORLD_TOPOGRAPHY_PALETTE = [
-  { limit: -1.15, pattern: '~~' },
-  { limit: -0.7, pattern: 'vv' },
-  { limit: -0.25, pattern: '--' },
-  { limit: 0.2, pattern: '..' },
-  { limit: 0.6, pattern: '::' },
-  { limit: 1, pattern: '/\\' },
-  { limit: Infinity, pattern: '^^' },
-];
-
-const WORLD_TOPOGRAPHY_RIDGE_PATTERNS = [
-  { limit: 15, pattern: '||' },
-  { limit: 35, pattern: '/\\' },
-  { limit: 70, pattern: '--' },
-  { limit: 110, pattern: '\\/' },
-  { limit: 145, pattern: '\\' },
-  { limit: 180, pattern: '||' },
-];
-
-let cachedTopographyAscii = null;
+function createTopographySvg(){
+  const template = document.createElement('template');
+  template.innerHTML = STATIC_TOPOGRAPHY_SVG.trim();
+  const svg = template.content.firstElementChild;
+  if(svg){
+    svg.setAttribute('aria-hidden', 'true');
+  }
+  return svg;
+}
 
 const MAP_TOPOLOGY_FEATURES = [
   {
@@ -96,11 +144,10 @@ function renderMapMarkers(){
   const map = document.querySelector('#map');
   if(!map) return;
   map.innerHTML = '';
-  const ascii = document.createElement('pre');
-  ascii.className = 'map-topography-ascii';
-  ascii.setAttribute('aria-hidden', 'true');
-  ascii.textContent = generateWorldTopographyAscii();
-  map.appendChild(ascii);
+  const topo = createTopographySvg();
+  if(topo){
+    map.appendChild(topo);
+  }
   const filteredIds = new Set(state.filtered.map(e=>e.id));
   state.entries.filter(e=>e.location).forEach(e=>{
     const marker = document.createElement('button');
@@ -229,125 +276,6 @@ function restoreFromHash(){
     if(e) openModal(e);
   }
 }
-
-function generateWorldTopographyAscii(){
-  if(cachedTopographyAscii) return cachedTopographyAscii;
-  const width = WORLD_TOPOGRAPHY.gridWidth;
-  const height = WORLD_TOPOGRAPHY.gridHeight;
-  const rows = [];
-  for(let gy = 0; gy < height; gy += 1){
-    const py = height <= 1 ? 0 : (gy / (height - 1)) * 100;
-    let row = '';
-    for(let gx = 0; gx < width; gx += 1){
-      const px = width <= 1 ? 0 : (gx / (width - 1)) * 100;
-      const sample = computeWorldTopographySample(px, py);
-      let pattern = pickTopographyPattern(sample);
-      const idx = Math.abs(Math.floor(gx + gy)) % pattern.length;
-      let char = pattern[idx] || pattern[0] || '.';
-      if(sample.elevation > 1.4 && sample.hillInfluence > 0.55 && ((gx + gy) % 5 === 0)){
-        char = 'A';
-      } else if(sample.elevation > 1.75 && sample.hillInfluence > 0.7 && ((gx * 3 + gy) % 7 === 0)){
-        char = 'M';
-      } else if(sample.elevation < -0.85 && sample.valleyInfluence > 0.5 && ((gx + gy * 2) % 4 === 0)){
-        char = 'v';
-      }
-      row += char;
-    }
-    rows.push(row);
-  }
-  cachedTopographyAscii = rows.join('\n');
-  return cachedTopographyAscii;
-}
-
-function computeWorldTopographySample(px, py){
-  let elevation = ((py / 100) - 0.5) * 0.9;
-  elevation += ((px / 100) - 0.5) * 0.4;
-  let hillInfluence = 0;
-  let valleyInfluence = 0;
-  let ridgeInfluence = 0;
-  let ridgeRotation = null;
-  MAP_TOPOLOGY_FEATURES.forEach(feature => {
-    if(!feature) return;
-    const spanX = Math.max(6, Number.isFinite(feature.width) ? feature.width : 20);
-    const spanY = Math.max(6, Number.isFinite(feature.height) ? feature.height : spanX);
-    const dx = px - feature.x;
-    const dy = py - feature.y;
-    const distX = dx / (spanX * 0.5);
-    const distY = dy / (spanY * 0.5);
-    const distance = Math.hypot(distX, distY);
-    if(distance > 2.2) return;
-    const falloff = Math.max(0, 1 - (distance ** 1.35));
-    if(falloff <= 0) return;
-    const intensity = Number.isFinite(feature.intensity) ? feature.intensity : 1;
-    const influence = falloff * intensity;
-    const type = feature.type || 'hill';
-    if(type === 'valley' || type === 'sink'){
-      elevation -= influence * 1.2;
-      valleyInfluence = Math.max(valleyInfluence, influence);
-    } else if(type === 'ridge'){
-      elevation += influence * 0.9;
-      if(influence > ridgeInfluence){
-        ridgeInfluence = influence;
-        ridgeRotation = feature.rotation ?? 0;
-      }
-    } else {
-      elevation += influence * 1.3;
-      hillInfluence = Math.max(hillInfluence, influence);
-      if(influence > ridgeInfluence && Number.isFinite(feature.rotation)){
-        ridgeInfluence = influence * 0.6;
-        ridgeRotation = feature.rotation;
-      }
-    }
-  });
-  const jitter = seededJitter(WORLD_TOPOGRAPHY.seed, px * 1.71 + py * 2.13, 0.55);
-  const drift = seededJitter(WORLD_TOPOGRAPHY.seed, px * -0.42 + py * 0.58, 0.35);
-  elevation += jitter * 0.35 + drift * 0.25;
-  return { elevation, hillInfluence, valleyInfluence, ridgeInfluence, ridgeRotation };
-}
-
-function pickTopographyPattern(sample){
-  if(sample.ridgeInfluence > 0.55 && Number.isFinite(sample.ridgeRotation)){
-    return pickOrientationPattern(sample.ridgeRotation);
-  }
-  if(sample.valleyInfluence > 0.6){
-    return '~~';
-  }
-  let pattern = '::';
-  for(const option of WORLD_TOPOGRAPHY_PALETTE){
-    if(sample.elevation <= option.limit){
-      pattern = option.pattern;
-      break;
-    }
-  }
-  if(sample.hillInfluence > 0.65 && sample.elevation > 0.4){
-    const oriented = Number.isFinite(sample.ridgeRotation)
-      ? pickOrientationPattern(sample.ridgeRotation)
-      : null;
-    if(oriented) pattern = oriented;
-  }
-  return pattern;
-}
-
-function pickOrientationPattern(rotation){
-  const normalized = Math.abs(rotation % 180);
-  for(const option of WORLD_TOPOGRAPHY_RIDGE_PATTERNS){
-    if(normalized <= option.limit){
-      return option.pattern;
-    }
-  }
-  const fallback = WORLD_TOPOGRAPHY_RIDGE_PATTERNS[WORLD_TOPOGRAPHY_RIDGE_PATTERNS.length - 1];
-  return fallback ? fallback.pattern : '||';
-}
-
-function seededRandom(seed, index = 0){
-  const value = Math.sin((seed || 1) * 1337.13 + index * 97.73) * 43758.5453;
-  return value - Math.floor(value);
-}
-
-function seededJitter(seed, index, amplitude = 1){
-  return (seededRandom(seed, index) - 0.5) * 2 * amplitude;
-}
-
 async function main(){
   const res = await fetch('data/entries.json');
   const j = await res.json();
