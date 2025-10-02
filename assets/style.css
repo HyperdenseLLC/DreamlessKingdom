@@ -644,9 +644,9 @@ button:hover, .badge:hover {
   position: absolute;
   inset: 7% 9% 18% 9%;
   background-image:
-    repeating-linear-gradient(150deg, rgba(112, 184, 255, 0.08) 0, rgba(112, 184, 255, 0.08) 1px, transparent 1px, transparent 18px),
-    repeating-linear-gradient(30deg, rgba(212, 175, 55, 0.08) 0, rgba(212, 175, 55, 0.08) 1px, transparent 1px, transparent 18px);
-  opacity: 0.6;
+    repeating-linear-gradient(150deg, rgba(112, 184, 255, 0.08) 0, rgba(112, 184, 255, 0.08) 1px, transparent 1px, transparent 26px),
+    repeating-linear-gradient(30deg, rgba(212, 175, 55, 0.08) 0, rgba(212, 175, 55, 0.08) 1px, transparent 1px, transparent 26px);
+  opacity: 0.52;
   mix-blend-mode: screen;
 }
 
