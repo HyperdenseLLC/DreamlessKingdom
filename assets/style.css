@@ -644,100 +644,6 @@ button:hover, .badge:hover {
   z-index: 3;
 }
 
-.map-layer-topography {
-  z-index: 1;
-  opacity: 0.95;
-}
-
-.map-layer-topography .map-topography {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-
-.map-topography .landmass,
-.map-topography .landmass-outline {
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.map-topography .landmass {
-  stroke: rgba(88, 164, 206, 0.28);
-  stroke-width: 4px;
-  fill-opacity: 0.82;
-}
-
-.map-topography .landmass-outline {
-  stroke: rgba(140, 208, 248, 0.24);
-  stroke-width: 2.4px;
-  fill-opacity: 0.94;
-}
-
-.map-topography .contour {
-  fill: none;
-  stroke: rgba(122, 198, 248, 0.28);
-  stroke-width: 2px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.map-topography .contour.contour-major {
-  stroke: rgba(126, 202, 255, 0.35);
-}
-
-.map-topography .contour.contour-tight {
-  stroke-width: 1.6px;
-  stroke: rgba(154, 216, 255, 0.32);
-}
-
-.map-topography .contour.contour-fine {
-  stroke-width: 1.1px;
-  stroke: rgba(164, 224, 255, 0.22);
-  stroke-dasharray: 14 10;
-}
-
-.map-topography .ridge {
-  fill: none;
-  stroke: url(#terrain-ridge);
-  stroke-width: 2.3px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.75;
-}
-
-.map-topography .river {
-  fill: none;
-  stroke: rgba(102, 198, 255, 0.68);
-  stroke-width: 3.2px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 12px rgba(90, 180, 255, 0.35));
-}
-
-.map-topography .lake {
-  fill: rgba(70, 144, 190, 0.45);
-  stroke: rgba(140, 208, 248, 0.45);
-  stroke-width: 1.3px;
-}
-
-.map-topography .glow {
-  fill: none;
-  stroke: rgba(200, 228, 255, 0.16);
-  stroke-width: 12px;
-  stroke-linecap: round;
-  filter: blur(1.2px);
-}
-
-.map-topography .island {
-  fill: rgba(38, 74, 102, 0.9);
-  stroke: rgba(140, 202, 236, 0.4);
-  stroke-width: 1.4px;
-}
-
 
 .map-layer-zones {
   z-index: 3;
@@ -886,7 +792,6 @@ button:hover, .badge:hover {
 .map-zone {
   position: absolute;
   transform: translate(-50%, -50%);
-  --zone-orientation: 128deg;
   --zone-clip: ellipse(50% 44% at 50% 50%);
   clip-path: var(--zone-clip);
   -webkit-clip-path: var(--zone-clip);
@@ -901,26 +806,6 @@ button:hover, .badge:hover {
   transition: color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
 }
 
-.map-zone-ascii {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6%;
-  font-family: 'Fira Code', 'Source Code Pro', 'Inconsolata', monospace;
-  font-size: clamp(0.42rem, 0.8vw, 0.62rem);
-  line-height: 1.1;
-  letter-spacing: 0.08em;
-  white-space: pre;
-  text-align: center;
-  color: currentColor;
-  text-shadow: 0 0 14px rgba(212, 175, 55, 0.18);
-  pointer-events: none;
-  opacity: 0.38;
-  mix-blend-mode: screen;
-}
-
 .map-zone.active {
   color: rgba(232, 227, 211, 0.82);
   border-color: rgba(212, 175, 55, 0.58);
@@ -933,16 +818,6 @@ button:hover, .badge:hover {
   border-color: rgba(212, 175, 55, 0.75);
   box-shadow: 0 22px 54px rgba(212, 175, 55, 0.35);
   transform: translate(-50%, -50%) scale(1.07);
-}
-
-.map-zone.active .map-zone-ascii {
-  opacity: 0.62;
-  text-shadow: 0 0 18px rgba(212, 175, 55, 0.26);
-}
-
-.map-zone.selected .map-zone-ascii {
-  opacity: 0.78;
-  text-shadow: 0 0 22px rgba(212, 175, 55, 0.4);
 }
 
 .map-zone.active .map-zone-label {
