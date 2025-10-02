@@ -173,18 +173,10 @@ const SCENE_EVENTS = [
 ];
 
 const ISO_PROJECTION = (()=>{
-  const angle = Math.PI / 6;
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
-  const rangeX = cos * 100;
-  const marginX = 14;
-  const marginYTop = 10;
-  const marginYBottom = 18;
+  const marginX = 12;
+  const marginYTop = 8;
+  const marginYBottom = 12;
   return {
-    angle,
-    cos,
-    sin,
-    rangeX,
     marginX,
     marginYTop,
     marginYBottom,
@@ -1693,12 +1685,10 @@ function applyLandscapeSpread(value){
 
 function projectIsoPoint(x, y){
   if(x == null || y == null) return { left: 50, top: 50 };
-  const sx = applyLandscapeSpread(x);
-  const sy = applyLandscapeSpread(y);
-  const rawX = ((sx - sy) * ISO_PROJECTION.cos + ISO_PROJECTION.rangeX) / (ISO_PROJECTION.rangeX * 2);
-  const rawY = (sx + sy) * ISO_PROJECTION.sin / 100;
-  const left = rawX * ISO_PROJECTION.scaleX + ISO_PROJECTION.marginX / 2;
-  const top = rawY * ISO_PROJECTION.scaleY + ISO_PROJECTION.marginYTop;
+  const sx = clampNumber(applyLandscapeSpread(x), 0, 100);
+  const sy = clampNumber(applyLandscapeSpread(y), 0, 100);
+  const left = ISO_PROJECTION.marginX / 2 + (sx / 100) * ISO_PROJECTION.scaleX;
+  const top = ISO_PROJECTION.marginYTop + (sy / 100) * ISO_PROJECTION.scaleY;
   return {
     left: Math.min(100, Math.max(0, left)),
     top: Math.min(100, Math.max(0, top)),
@@ -1709,13 +1699,12 @@ function projectIsoSize(width, height){
   const w = Math.max(0, Number.isFinite(width) ? width : 0);
   const hSource = Number.isFinite(height) ? height : width;
   const h = Math.max(0, hSource);
-  const isoWidth = (w * ISO_PROJECTION.cos / (ISO_PROJECTION.rangeX * 2)) * ISO_PROJECTION.scaleX;
-  const isoHeight = (h * ISO_PROJECTION.sin / 100) * ISO_PROJECTION.scaleY;
-  const scaledWidth = isoWidth * MAP_ZONE_SIZE_SCALE;
-  const scaledHeight = isoHeight * MAP_ZONE_SIZE_SCALE;
+  const scaledWidth = (w / 100) * ISO_PROJECTION.scaleX * MAP_ZONE_SIZE_SCALE;
+  const scaledHeight = (h / 100) * ISO_PROJECTION.scaleY * MAP_ZONE_SIZE_SCALE;
+  const minSize = 6;
   return {
-    width: Math.min(ISO_PROJECTION.scaleX, Math.max(scaledWidth, 5)),
-    height: Math.min(ISO_PROJECTION.scaleY, Math.max(scaledHeight, Math.max(scaledWidth * 0.65, 4))),
+    width: Math.min(ISO_PROJECTION.scaleX, Math.max(scaledWidth, minSize)),
+    height: Math.min(ISO_PROJECTION.scaleY, Math.max(scaledHeight, minSize)),
   };
 }
 
