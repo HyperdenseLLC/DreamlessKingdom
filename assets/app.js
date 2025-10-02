@@ -256,6 +256,74 @@ const MAP_ZONES = [
   },
 ];
 
+const MAP_TERRAIN_FEATURES = [
+  {
+    id: 'choir-uplands',
+    name: 'Choir Uplands',
+    type: 'hill',
+    x: 40,
+    y: 34,
+    width: 24,
+    height: 18,
+    rotation: -6,
+    intensity: 1.15,
+    influences: ['The Village'],
+    effect: 'Tiered hillocks quicken aerial traversal but slow caravans hauling instruments uphill.',
+  },
+  {
+    id: 'sunken-promenade',
+    name: 'Sunken Promenade Basin',
+    type: 'valley',
+    x: 50,
+    y: 70,
+    width: 30,
+    height: 20,
+    rotation: 8,
+    intensity: 1.05,
+    influences: ['The Parade'],
+    effect: 'Flooded concourse demands careful footing yet concentrates spores for bloom harvesting.',
+  },
+  {
+    id: 'ridge-of-sighs',
+    name: 'Ridge of Sighs',
+    type: 'ridge',
+    x: 28,
+    y: 52,
+    width: 38,
+    height: 16,
+    rotation: -18,
+    intensity: 1.1,
+    influences: ['The Forest', 'The Deep Forest'],
+    effect: 'High ridgeline shields windswept paths; climbers gain vantage while wagons detour around sheer drops.',
+  },
+  {
+    id: 'palace-terraces',
+    name: 'Palace Terraces',
+    type: 'hill',
+    x: 72,
+    y: 48,
+    width: 28,
+    height: 22,
+    rotation: 12,
+    intensity: 1.2,
+    influences: ['The Palace'],
+    effect: 'Layered terraces boost glidewings bound for the conservatory but tax runners with steep switchbacks.',
+  },
+  {
+    id: 'deepway-sink',
+    name: 'Deepway Sink',
+    type: 'valley',
+    x: 72,
+    y: 82,
+    width: 34,
+    height: 18,
+    rotation: 18,
+    intensity: 0.9,
+    influences: ['The Mines'],
+    effect: 'Collapsed earth forms a sink that slows haulers though lift caravans can coast along exposed rails.',
+  },
+];
+
 const NPCS = [
   {
     id: 'archivist-sel',
@@ -1694,6 +1762,8 @@ function ensureMapStructure(){
   const ground = document.createElement('div');
   ground.className = 'map-ground';
   ground.setAttribute('aria-hidden', 'true');
+  const terrainLayer = document.createElement('div');
+  terrainLayer.className = 'map-layer map-layer-terrain';
   const pathSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   pathSvg.classList.add('map-path');
   pathSvg.setAttribute('viewBox', '0 0 100 100');
@@ -1713,7 +1783,7 @@ function ensureMapStructure(){
   npcLayer.className = 'map-layer map-layer-npcs';
   const actorsLayer = document.createElement('div');
   actorsLayer.className = 'map-layer map-layer-actors';
-  world.append(ground, pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
+  world.append(ground, terrainLayer, pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
   map.appendChild(viewport);
   const detail = document.createElement('div');
   detail.id = 'map-zone-detail';
@@ -1727,6 +1797,7 @@ function ensureMapStructure(){
     viewport,
     world,
     ground,
+    terrain: terrainLayer,
     path: { svg: pathSvg, line: pathLine },
     zones: zonesLayer,
     markers: markersLayer,
@@ -1741,6 +1812,37 @@ function ensureMapStructure(){
     world.style.setProperty('--map-offset-y', `${state.mapCamera.offsetY.toFixed(2)}px`);
   }
   return map._layers;
+}
+
+function renderMapTerrain(layer){
+  if(!layer) return;
+  layer.innerHTML = '';
+  MAP_TERRAIN_FEATURES.forEach(feature => {
+    if(!feature) return;
+    const node = document.createElement('div');
+    const classes = ['map-terrain'];
+    if(feature.type){
+      classes.push(`map-terrain-${String(feature.type).toLowerCase().replace(/[^a-z0-9-]/g, '-')}`);
+    }
+    node.className = classes.join(' ');
+    node.setAttribute('aria-hidden', 'true');
+    if(feature.id){
+      node.dataset.terrainId = feature.id;
+    }
+    const pos = projectIsoPoint(feature.x, feature.y);
+    const size = projectIsoSize(feature.width, feature.height || feature.width);
+    node.style.left = `${pos.left}%`;
+    node.style.top = `${pos.top}%`;
+    node.style.width = `${size.width}%`;
+    node.style.height = `${size.height}%`;
+    if(Number.isFinite(feature.rotation)){
+      node.style.setProperty('--terrain-rotation', `${feature.rotation}deg`);
+    }
+    if(Number.isFinite(feature.intensity)){
+      node.style.setProperty('--terrain-intensity', feature.intensity);
+    }
+    layer.appendChild(node);
+  });
 }
 
 function renderMapZones(layer){
@@ -1846,6 +1948,35 @@ function renderMapZoneDetail(){
     });
     detail.appendChild(list);
   }
+  const terrain = MAP_TERRAIN_FEATURES.filter(feature =>
+    Array.isArray(feature?.influences) && feature.influences.includes(zone.name)
+  );
+  if(terrain.length){
+    const heading = document.createElement('h4');
+    heading.textContent = 'Terrain influences';
+    detail.appendChild(heading);
+    const list = document.createElement('ul');
+    list.className = 'map-zone-terrain-list';
+    terrain.forEach(feature => {
+      if(!feature) return;
+      const item = document.createElement('li');
+      const label = document.createElement('strong');
+      label.textContent = feature.name || 'Terrain';
+      item.appendChild(label);
+      const typeLabel = feature.type
+        ? `${feature.type.charAt(0).toUpperCase()}${feature.type.slice(1)} formation`
+        : '';
+      const fragments = [];
+      if(typeLabel) fragments.push(typeLabel);
+      if(feature.effect) fragments.push(feature.effect);
+      const description = fragments.join('. ');
+      if(description){
+        item.appendChild(document.createTextNode(` — ${description}`));
+      }
+      list.appendChild(item);
+    });
+    detail.appendChild(list);
+  }
 }
 
 function renderMapEvents(layer){
@@ -1892,7 +2023,8 @@ function renderMapMarkers(){
   if(!map) return;
   const layers = ensureMapStructure();
   if(!layers) return;
-  const { zones, markers, npcs, events } = layers;
+  const { terrain, zones, markers, npcs, events } = layers;
+  renderMapTerrain(terrain);
   renderMapZones(zones);
   markers.innerHTML = '';
   if(npcs) npcs.innerHTML = '';
