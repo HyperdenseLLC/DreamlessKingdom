@@ -13,6 +13,7 @@ const state = {
   mapCamera: null,
   activeEvents: [],
   bloomDormant: new Map(),
+  zoneToastTimer: null,
 };
 
 const LABEL_PLACEMENTS = new Map();
@@ -40,6 +41,7 @@ const SCENE_EVENTS = [
     ],
     mapDuration: 24,
     mapLabel: 'Auroral surge flare',
+    moodTag: 'wonder',
   },
   {
     id: 'veilwind-fog',
@@ -62,6 +64,7 @@ const SCENE_EVENTS = [
     ],
     mapDuration: 28,
     mapLabel: 'Veilwind fog bank',
+    moodTag: 'uneasy',
   },
   {
     id: 'festival-rally',
@@ -83,6 +86,7 @@ const SCENE_EVENTS = [
     ],
     mapDuration: 22,
     mapLabel: 'Festival rally procession',
+    moodTag: 'jubilant',
   },
   {
     id: 'shelterfront-squall',
@@ -105,6 +109,7 @@ const SCENE_EVENTS = [
     ],
     mapDuration: 26,
     mapLabel: 'Shelterfront squall',
+    moodTag: 'weary',
   },
   {
     id: 'nomad-crossing',
@@ -127,6 +132,7 @@ const SCENE_EVENTS = [
     ],
     mapDuration: 20,
     mapLabel: 'Nomad crossing detour',
+    moodTag: 'curiosity',
   },
   {
     id: 'murmur-bloom',
@@ -148,6 +154,7 @@ const SCENE_EVENTS = [
     ],
     mapDuration: 24,
     mapLabel: 'Murmur bloom cycle',
+    moodTag: 'calm',
   },
   {
     id: 'ashen-fallow',
@@ -169,8 +176,153 @@ const SCENE_EVENTS = [
     ],
     mapDuration: 28,
     mapLabel: 'Ashen fallow cycle',
+    moodTag: 'uneasy',
   },
 ];
+
+const MOOD_EFFECTS = {
+  wonder: {
+    delta: 2,
+    tone: 'wonderstruck',
+    messages: [
+      'The surveyor pauses, eyes wide as {source} refracts unheard colours.',
+      '{source} ignites a hush of awe; their pulse keeps tempo with the aurora.',
+    ],
+  },
+  calm: {
+    delta: 1,
+    tone: 'soothed',
+    messages: [
+      '{source} loosens the tension in their shoulders, a quiet breath settling in.',
+      'They let the calm from {source} steady their stride.',
+    ],
+  },
+  curiosity: {
+    delta: 1,
+    tone: 'curious',
+    messages: [
+      '{source} sparks a dozen new questions the surveyor wants to chase.',
+      'They sketch rapid glyphs, curiosity stirred by {source}.',
+    ],
+  },
+  uneasy: {
+    delta: -1,
+    tone: 'uneasy',
+    messages: [
+      'A prickle of unease lingers after {source}; they scan the mists twice.',
+      '{source} leaves them wary, pace tightening for a few breaths.',
+    ],
+  },
+  weary: {
+    delta: -2,
+    tone: 'weary',
+    messages: [
+      'Fatigue seeps in as {source} drags against their stride.',
+      '{source} tests their reserves; the satchel feels heavier.',
+    ],
+  },
+  jubilant: {
+    delta: 3,
+    tone: 'elated',
+    messages: [
+      'Joy bursts bright — {source} feels like the kingdom applauding.',
+      'They laugh under their breath; {source} turns the trek celebratory.',
+    ],
+  },
+  grit: {
+    delta: 1,
+    tone: 'resolute',
+    messages: [
+      '{source} steels their resolve; maps reshuffle under determined hands.',
+      'They square their shoulders, determined after {source}.',
+    ],
+  },
+  focused: {
+    delta: 0,
+    tone: 'focused',
+    messages: [
+      '{source} sharpens their focus, every route plotted twice.',
+      'They note {source} with clinical precision, attention narrowed.',
+    ],
+  },
+};
+
+const MOOD_TONE_PROMPTS = {
+  steady: [
+    'Footsteps fall in a steady cadence along the moss-lined causeways.',
+    'The surveyor hums a familiar interval while the route stays gentle.',
+  ],
+  wonderstruck: [
+    'They keep glancing up, chasing auroral reflections in their jars.',
+    'Every step feels lighter, wonder pooling in their eyes.',
+  ],
+  soothed: [
+    'Breath slows; the hush of leaves keeps the surveyor soothed.',
+    'The quiet drip of condensation steadies their pulse.',
+  ],
+  curious: [
+    'Questions stack in their notebook margins, curiosity tugging them onward.',
+    'They trace new angles across the map, hunting fresh leads.',
+  ],
+  uneasy: [
+    'The surveyor checks the perimeter, unease lingering in their gait.',
+    'They tighten cloak clasps, glancing back at their trail.',
+  ],
+  weary: [
+    'Fatigue rumbles under each stride, but they keep moving.',
+    'Their shoulders sag briefly before the next waypoint pulls them onward.',
+  ],
+  elated: [
+    'They almost skip between lantern posts, elation brightening the route.',
+    'Field notes spill into celebratory scrawl; morale soars.',
+  ],
+  resolute: [
+    'Jaw set, they navigate with quiet resolve.',
+    'Their stance is firm, determination guiding the compass.',
+  ],
+  focused: [
+    'Every landmark is catalogued; focus sharpens the route.',
+    'They measure distance with crisp precision, distractions fading.',
+  ],
+};
+
+const ENTRY_MOOD_TAGS = {
+  dreamroot: 'calm',
+  'honeyglobe-capsule': 'focused',
+  'chorus-spore-cluster': 'wonder',
+  'glassfern-scribes': 'curiosity',
+  'moonlace-bloom': 'wonder',
+  'emberleaf-vines': 'grit',
+  'tidal-iris': 'calm',
+  'starlit-bramble': 'curiosity',
+  'whisper-willow': 'calm',
+  'gloomcap-mantle': 'uneasy',
+  'umbral-mistle': 'focused',
+  'wanderers-ember': 'jubilant',
+  'archive-lichen-scroll': 'focused',
+  'tidelight-caul': 'calm',
+  'shatterlight-thistle': 'grit',
+  'mint-cluster': 'calm',
+  'sparkling-mineral': 'curiosity',
+  'golden-cap-sphere': 'wonder',
+  'teal-crown-root': 'jubilant',
+  'sunspore-eye': 'jubilant',
+  'ambercrest-lantern': 'focused',
+  'lost-camera': 'curiosity',
+  'blooming-robes': 'wonder',
+  'umbral-iris-lens': 'focused',
+};
+
+const DIALOGUE_MOOD_TAGS = {
+  'archivist-sel:sel-greeting': 'calm',
+  'skywright-ila:ila-greeting': 'curiosity',
+  'carnival-quartermaster:jansa-greeting': 'jubilant',
+  'tideglass-warden:celyne-greeting': 'calm',
+  'hollow-gardener:thalen-greeting': 'calm',
+  'forge-liaison:brakk-greeting': 'grit',
+  'deepway-cartographer:neer-greeting': 'focused',
+  'resonant-historian:aderyn-greeting': 'wonder',
+};
 
 const ISO_PROJECTION = (()=>{
   const marginX = 12;
@@ -1770,6 +1922,36 @@ function scatterCoordinate(base, radius = 6){
   };
 }
 
+function seededRandom(seed, index = 0){
+  const value = Math.sin((seed || 1) * 1337.13 + index * 97.73) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+function seededJitter(seed, index, amplitude = 1){
+  return (seededRandom(seed, index) - 0.5) * 2 * amplitude;
+}
+
+function pickOne(list, fallback = null){
+  if(!Array.isArray(list) || !list.length) return fallback;
+  const index = Math.floor(Math.random() * list.length);
+  return list[index] ?? fallback;
+}
+
+function pickOneSeeded(list, seed, offset = 0){
+  if(!Array.isArray(list) || !list.length) return null;
+  const value = seededRandom(seed, offset);
+  const index = Math.floor(value * list.length) % list.length;
+  return list[(index + list.length) % list.length];
+}
+
+function formatMoodLine(template, context = {}){
+  if(!template) return '';
+  return template
+    .replaceAll('{source}', context.source || 'the route')
+    .replaceAll('{zone}', context.zone || 'the kingdom')
+    .replaceAll('{tone}', context.tone || '');
+}
+
 function ensureMapStructure(){
   const map = document.querySelector('#map');
   if(!map) return null;
@@ -1809,6 +1991,12 @@ function ensureMapStructure(){
   detail.setAttribute('aria-atomic', 'true');
   detail.hidden = true;
   map.appendChild(detail);
+  const arrival = document.createElement('div');
+  arrival.id = 'map-zone-arrival';
+  arrival.className = 'map-zone-arrival';
+  arrival.setAttribute('aria-live', 'polite');
+  arrival.setAttribute('aria-atomic', 'true');
+  map.appendChild(arrival);
   const telemetry = document.getElementById('telemetry-readout');
   map._layers = {
     viewport,
@@ -1820,6 +2008,7 @@ function ensureMapStructure(){
     npcs: npcLayer,
     actors: actorsLayer,
     detail,
+    arrival,
     telemetry,
   };
   if(state.mapCamera){
@@ -2013,8 +2202,8 @@ function computeZoneOrientation(zone, features = resolveZoneFeatures(zone)){
 function generateZoneAsciiArt(zone, orientation){
   const width = Number.isFinite(zone?.width) ? zone.width : 36;
   const height = Number.isFinite(zone?.height) ? zone.height : width;
-  const innerWidth = clampNumber(Math.round(width / 2.8), 8, 18);
-  const innerHeight = clampNumber(Math.round(height / 4.2), 4, 9);
+  const gridWidth = clampNumber(Math.round(width / 2.4), 12, 22);
+  const gridHeight = clampNumber(Math.round(height / 3.4), 6, 12);
   const normalizedOrientation = Number.isFinite(orientation)
     ? Math.abs(orientation % 180)
     : null;
@@ -2041,19 +2230,64 @@ function generateZoneAsciiArt(zone, orientation){
     const variantIndex = Math.floor((Math.abs(seed) * 37) % fillVariations.length);
     fillPattern = fillVariations[variantIndex] || '..';
   }
+  const patternChars = fillPattern.split('');
   const rows = [];
-  const horizontal = '='.repeat(innerWidth);
-  rows.push(`+${horizontal}+`);
-  for(let y = 0; y < innerHeight; y += 1){
-    let fill = '';
-    for(let x = 0; x < innerWidth; x += 1){
-      const index = (x + y) % fillPattern.length;
-      fill += fillPattern[index];
+  for(let y = 0; y < gridHeight; y += 1){
+    const progress = gridHeight <= 1 ? 0 : y / (gridHeight - 1);
+    const bulge = Math.sin(progress * Math.PI);
+    const wave = seededJitter(seed, y * 1.7, 0.35);
+    const offset = seededJitter(seed, y + 24.1, 1.4);
+    const center = gridWidth / 2 + offset;
+    let radius = (gridWidth / 3) + bulge * (gridWidth / 2.8) + wave * (gridWidth / 3.6);
+    radius = Math.max(2.2, radius);
+    let start = Math.max(0, Math.floor(center - radius));
+    let end = Math.min(gridWidth - 1, Math.ceil(center + radius));
+    if(end - start < 3){
+      const adjust = 3 - (end - start);
+      start = Math.max(0, start - Math.ceil(adjust / 2));
+      end = Math.min(gridWidth - 1, end + Math.floor(adjust / 2));
     }
-    rows.push(`|${fill.slice(0, innerWidth)}|`);
+    let row = '';
+    for(let x = 0; x < gridWidth; x += 1){
+      if(x < start || x > end){
+        row += ' ';
+        continue;
+      }
+      const isEdge = (x === start || x === end);
+      if(isEdge){
+        const slope = seededJitter(seed, x * 0.6 + y * 0.8, 0.9);
+        const isTop = y === 0;
+        const isBottom = y === gridHeight - 1;
+        let edgeChar = '|';
+        if(isTop){
+          edgeChar = x === start ? '/' : '\\';
+        } else if(isBottom){
+          edgeChar = x === start ? '\\' : '/';
+        } else if(slope > 0.45){
+          edgeChar = ')';
+        } else if(slope < -0.45){
+          edgeChar = '(';
+        } else if(slope > 0){
+          edgeChar = ']';
+        } else {
+          edgeChar = '[';
+        }
+        row += edgeChar;
+      } else {
+        const index = Math.abs(Math.floor((x + y + seed) % patternChars.length));
+        let fillChar = patternChars[index] || '.';
+        const sparkle = seededRandom(seed, x * 5.7 + y * 3.9);
+        if(sparkle > 0.94){
+          const accents = ['*', '.', ':', "'"];
+          const accent = accents[Math.floor(seededRandom(seed, x * 2.6 + y * 1.8) * accents.length)];
+          if(accent) fillChar = accent;
+        }
+        row += fillChar;
+      }
+    }
+    rows.push(row.replace(/\s+$/u, ''));
   }
-  rows.push(`+${horizontal}+`);
-  return rows.join('\n');
+  return rows.join('\n').replace(/\s+$/gmu, '');
 }
 
 function renderMapZones(layer){
@@ -3156,6 +3390,33 @@ function hashString(str){
   return Array.from(str || '').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 }
 
+function announceZoneArrival(zone){
+  const layers = ensureMapStructure();
+  if(!layers?.arrival) return;
+  const el = layers.arrival;
+  if(state.zoneToastTimer){
+    clearTimeout(state.zoneToastTimer);
+    state.zoneToastTimer = null;
+  }
+  if(!zone){
+    el.classList.remove('visible');
+    el.innerHTML = '';
+    el.dataset.zone = '';
+    return;
+  }
+  const subtitle = zone.subtitle || (Array.isArray(zone.regions) ? zone.regions.join(' • ') : '');
+  el.innerHTML = `
+    <strong>${zone.name}</strong>
+    ${subtitle ? `<span>${subtitle}</span>` : ''}
+  `;
+  el.dataset.zone = zone.name;
+  el.classList.add('visible');
+  state.zoneToastTimer = setTimeout(() => {
+    el.classList.remove('visible');
+    state.zoneToastTimer = null;
+  }, 4500);
+}
+
 function renderMapTelemetry(){
   const layers = ensureMapStructure();
   if(!layers?.telemetry) return;
@@ -3164,9 +3425,18 @@ function renderMapTelemetry(){
   if(!ex){
     el.textContent = 'Telemetry calibrating…';
     el.classList.add('muted');
+    announceZoneArrival(null);
     return;
   }
   const zone = findZoneForCoordinate(ex.x, ex.y);
+  if(zone?.name !== ex.currentZoneName){
+    ex.currentZoneName = zone?.name || null;
+    if(zone){
+      announceZoneArrival(zone);
+    } else {
+      announceZoneArrival(null);
+    }
+  }
   const elapsed = ex.elapsedTime || 0;
   const locationName = zone?.name || 'Uncharted stretch';
   const zoneSubtitle = zone?.subtitle || '';
@@ -3212,6 +3482,164 @@ function recordExplorerPosition(force = false){
     ex.path[ex.path.length - 1] = { x: ex.x, y: ex.y };
   }
   updateExplorerTrail();
+}
+
+function ensureObserverMoodElement(){
+  const existing = document.querySelector('#observer-mood');
+  if(existing) return existing;
+  const container = document.querySelector('.observer-body');
+  if(!container) return null;
+  const el = document.createElement('div');
+  el.id = 'observer-mood';
+  el.className = 'observer-mood';
+  el.setAttribute('aria-live', 'polite');
+  el.setAttribute('aria-atomic', 'true');
+  const log = container.querySelector('.observer-log');
+  if(log){
+    container.insertBefore(el, log);
+  } else {
+    container.appendChild(el);
+  }
+  return el;
+}
+
+function formatMoodToneLabel(tone){
+  return String(tone || 'steady')
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function ensureExplorerMood(explorer = state.explorer){
+  if(!explorer) return null;
+  if(!explorer.mood){
+    explorer.mood = {
+      value: 0,
+      tone: 'steady',
+      queue: [],
+      display: null,
+      idleTimer: 10 + Math.random() * 6,
+      lastTag: null,
+      lastContext: null,
+    };
+  }
+  return explorer.mood;
+}
+
+function promoteMoodDisplay(mood){
+  if(!mood || mood.display || !mood.queue.length) return;
+  const next = mood.queue.shift();
+  if(!next?.text) return;
+  mood.display = {
+    text: next.text,
+    tone: next.tone || mood.tone || 'steady',
+    emphasis: next.emphasis || 'neutral',
+    remaining: Math.max(2.5, next.duration || 6),
+  };
+  renderExplorerMood();
+}
+
+function queueExplorerMoodMessage(message){
+  const mood = ensureExplorerMood();
+  if(!mood || !message?.text) return;
+  mood.queue.push({
+    text: message.text,
+    tone: message.tone,
+    emphasis: message.emphasis,
+    duration: message.duration,
+  });
+  if(!mood.display){
+    promoteMoodDisplay(mood);
+  }
+}
+
+function applyExplorerMoodTag(tag, context = {}){
+  if(!tag) return;
+  const effect = MOOD_EFFECTS[tag];
+  if(!effect) return;
+  const mood = ensureExplorerMood();
+  if(!mood) return;
+  mood.value = clampNumber((mood.value || 0) + (effect.delta || 0), -5, 5);
+  mood.tone = effect.tone || mood.tone || 'steady';
+  mood.lastTag = tag;
+  mood.lastContext = context;
+  const template = pickOne(effect.messages);
+  if(template){
+    const text = formatMoodLine(template, {
+      ...context,
+      tone: mood.tone,
+    });
+    const emphasis = effect.delta > 0 ? 'positive' : (effect.delta < 0 ? 'negative' : 'neutral');
+    queueExplorerMoodMessage({
+      text,
+      tone: mood.tone,
+      emphasis,
+      duration: 6.5,
+    });
+  }
+  mood.idleTimer = 12 + Math.random() * 8;
+}
+
+function renderExplorerMood(){
+  const el = ensureObserverMoodElement();
+  const ex = state.explorer;
+  if(!el){
+    return;
+  }
+  if(!ex){
+    el.classList.remove('visible', 'mood-positive', 'mood-negative');
+    el.textContent = '';
+    el.dataset.tone = '';
+    return;
+  }
+  const mood = ensureExplorerMood(ex);
+  if(!mood?.display){
+    el.classList.remove('visible', 'mood-positive', 'mood-negative');
+    el.textContent = '';
+    el.dataset.tone = '';
+    return;
+  }
+  const toneLabel = formatMoodToneLabel(mood.display.tone);
+  el.innerHTML = `
+    <div class="mood-label">Mood — ${toneLabel}</div>
+    <div class="mood-text">${mood.display.text}</div>
+  `;
+  el.dataset.tone = mood.display.tone || '';
+  el.classList.toggle('mood-positive', mood.display.emphasis === 'positive');
+  el.classList.toggle('mood-negative', mood.display.emphasis === 'negative');
+  el.classList.add('visible');
+}
+
+function updateExplorerMood(dt){
+  const mood = ensureExplorerMood();
+  if(!mood) return;
+  if(mood.display){
+    mood.display.remaining -= dt;
+    if(mood.display.remaining <= 0){
+      mood.display = null;
+      renderExplorerMood();
+    }
+  }
+  if(!mood.display){
+    promoteMoodDisplay(mood);
+  }
+  const timer = Math.max(0, (mood.idleTimer ?? 0) - dt);
+  mood.idleTimer = timer;
+  if(timer === 0){
+    const tone = mood.tone || 'steady';
+    const prompts = MOOD_TONE_PROMPTS[tone] || MOOD_TONE_PROMPTS.steady || [];
+    const template = pickOne(prompts);
+    if(template){
+      queueExplorerMoodMessage({
+        text: formatMoodLine(template, { tone, zone: mood.lastContext?.zone || '' }),
+        tone,
+        emphasis: 'neutral',
+        duration: 5.5,
+      });
+    }
+    mood.idleTimer = 18 + Math.random() * 10;
+  }
 }
 
 function renderExplorerStatus(){
@@ -3494,6 +3922,7 @@ function renderExplorerUI(){
   renderExplorerElement();
   renderExplorerStatus();
   renderSceneEvent();
+  renderExplorerMood();
   renderExplorerCount();
   renderExplorerLog();
   renderInventory();
@@ -3687,6 +4116,13 @@ function triggerSceneEvent(){
     time: new Date(),
   });
   ex.log = ex.log.slice(0, 10);
+  if(choice.moodTag){
+    applyExplorerMoodTag(choice.moodTag, {
+      source: choice.title,
+      type: 'event',
+      zone: findZoneForCoordinate(ex.x, ex.y)?.name || '',
+    });
+  }
   renderExplorerLog();
   renderSceneEvent();
   renderExplorerStatus();
@@ -3809,6 +4245,14 @@ function handleExplorerCollect(entry){
   ex.lastCollectedVariant = entry.variant || null;
   ex.lastCollectedId = entry.id;
   ex.target = null;
+  const moodTag = ENTRY_MOOD_TAGS[entry.id];
+  if(moodTag){
+    applyExplorerMoodTag(moodTag, {
+      source: entry.title,
+      type: 'discovery',
+      zone: entry.location?.region || findZoneForCoordinate(entry.location?.x, entry.location?.y)?.name || '',
+    });
+  }
   renderExplorerUI();
   if(isNew){
     renderGrid();
@@ -3850,6 +4294,23 @@ function handleExplorerNpc(npc){
     npc.wanderPause = Math.max(npc.wanderPause || 0, duration + 1.5);
     npc.wanderTarget = { x: npc.location.x, y: npc.location.y };
   }
+  let moodTag = dialogue?.moodTag || (selection.key ? DIALOGUE_MOOD_TAGS[selection.key] : null);
+  if(!moodTag && Array.isArray(dialogue?.requires)){
+    for(const requirement of dialogue.requires){
+      if(ENTRY_MOOD_TAGS[requirement]){
+        moodTag = ENTRY_MOOD_TAGS[requirement];
+        break;
+      }
+    }
+  }
+  if(moodTag){
+    applyExplorerMoodTag(moodTag, {
+      source: dialogue?.title || npc.name,
+      type: 'dialogue',
+      npc: npc.name,
+      zone: npc.location?.region || '',
+    });
+  }
   renderExplorerUI();
 }
 
@@ -3862,6 +4323,7 @@ function explorerStep(ts){
   ex.elapsedTime = (ex.elapsedTime || 0) + dt;
   updateNpcWandering(dt);
   updateActiveEvents(dt);
+  updateExplorerMood(dt);
   ex.telemetryTimer = (ex.telemetryTimer || 0) + dt;
   if(ex.telemetryTimer >= 0.5){
     ex.telemetryTimer = 0;
@@ -3976,7 +4438,9 @@ function initExplorer(){
     elapsedTime: 0,
     telemetryTimer: 0,
     pendingRedirect: null,
+    currentZoneName: null,
   };
+  ensureExplorerMood(state.explorer);
   ensureExplorerElement();
   recordExplorerPosition(true);
   updateMapCamera({ immediate: true });

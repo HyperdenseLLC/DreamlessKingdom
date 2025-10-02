@@ -975,6 +975,50 @@ button:hover, .badge:hover {
   gap: 5px;
 }
 
+.map-zone-arrival {
+  position: absolute;
+  top: clamp(12px, 3vw, 26px);
+  left: clamp(12px, 3vw, 26px);
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(12, 17, 32, 0.92);
+  border: 1px solid rgba(212, 175, 55, 0.36);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+  font-family: 'Inconsolata', monospace;
+  font-size: clamp(0.52rem, 0.9vw, 0.7rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.76);
+  pointer-events: none;
+  z-index: 18;
+  opacity: 0;
+  transform: translateY(-14px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.map-zone-arrival strong {
+  display: block;
+  font-family: 'Crimson Text', serif;
+  font-size: clamp(0.74rem, 1.2vw, 1rem);
+  letter-spacing: 0.05em;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+}
+
+.map-zone-arrival span {
+  display: block;
+  margin-top: 4px;
+  font-family: 'Inconsolata', monospace;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: rgba(220, 214, 245, 0.8);
+}
+
+.map-zone-arrival.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .map-zone-detail[hidden] {
   display: none;
 }
@@ -1667,6 +1711,52 @@ button:hover, .badge:hover {
 .observer-scene .scene-status {
   font-size: 0.95rem;
   line-height: 1.5;
+}
+
+.observer-mood {
+  position: relative;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(18, 22, 43, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.42);
+  font-family: 'Inconsolata', monospace;
+  font-size: 0.9rem;
+  color: rgba(232, 227, 211, 0.9);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+
+.observer-mood.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.observer-mood.mood-positive {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 18px 44px rgba(212, 175, 55, 0.26);
+}
+
+.observer-mood.mood-negative {
+  border-color: rgba(255, 120, 140, 0.45);
+  box-shadow: 0 18px 40px rgba(255, 120, 140, 0.22);
+}
+
+.observer-mood .mood-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.72);
+  margin-bottom: 4px;
+}
+
+.observer-mood .mood-text {
+  font-family: 'Crimson Text', serif;
+  font-size: 0.96rem;
+  line-height: 1.45;
+  color: rgba(233, 229, 216, 0.95);
 }
 
 .grid {
