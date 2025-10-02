@@ -1558,12 +1558,7 @@ function ensureMapStructure(){
   detail.setAttribute('aria-atomic', 'true');
   detail.hidden = true;
   map.appendChild(detail);
-  const telemetry = document.createElement('div');
-  telemetry.className = 'map-telemetry';
-  telemetry.setAttribute('aria-live', 'polite');
-  telemetry.setAttribute('aria-atomic', 'true');
-  telemetry.textContent = 'Telemetry calibrating…';
-  map.appendChild(telemetry);
+  const telemetry = document.getElementById('telemetry-readout');
   map._layers = {
     viewport,
     world,
@@ -2370,6 +2365,7 @@ function renderMapTelemetry(){
   const ex = state.explorer;
   if(!ex){
     el.textContent = 'Telemetry calibrating…';
+    el.classList.add('muted');
     return;
   }
   const zone = findZoneForCoordinate(ex.x, ex.y);
@@ -2389,14 +2385,16 @@ function renderMapTelemetry(){
   const humidity = clampNumber(55 + (1 - locationFactor) * 28 + Math.cos(elapsed / 9 + zoneSeed * 0.3) * 14, 24, 97);
   const temperature = clampNumber(18 + Math.sin(elapsed / 11 + zoneSeed * 0.2) * 6 - locationFactor * 4, 6, 32);
   const aurora = clampNumber(38 + drift * 48 + (ex.sceneEvent ? 12 : 0), 20, 98);
+  el.classList.remove('muted');
   el.innerHTML = `
-    <div class="telemetry-heading">Field Telemetry</div>
-    <div class="telemetry-pair"><span>Locale</span><strong>${locationName}</strong></div>
-    <div class="telemetry-pair"><span>Time</span><strong>${timeLabel}</strong></div>
-    <div class="telemetry-pair"><span>Wind</span><strong>${wind.toFixed(1)} knots</strong></div>
-    <div class="telemetry-pair"><span>Humidity</span><strong>${Math.round(humidity)}%</strong></div>
-    <div class="telemetry-pair"><span>Ambient</span><strong>${temperature.toFixed(1)}°C</strong></div>
-    <div class="telemetry-pair"><span>Aurora Flux</span><strong>${Math.round(aurora)}%</strong></div>
+    <div class="telemetry-grid">
+      <div class="telemetry-pair"><span>Locale</span><strong>${locationName}</strong></div>
+      <div class="telemetry-pair"><span>Time</span><strong>${timeLabel}</strong></div>
+      <div class="telemetry-pair"><span>Wind</span><strong>${wind.toFixed(1)} knots</strong></div>
+      <div class="telemetry-pair"><span>Humidity</span><strong>${Math.round(humidity)}%</strong></div>
+      <div class="telemetry-pair"><span>Ambient</span><strong>${temperature.toFixed(1)}°C</strong></div>
+      <div class="telemetry-pair"><span>Aurora Flux</span><strong>${Math.round(aurora)}%</strong></div>
+    </div>
     ${zoneSubtitle ? `<div class="telemetry-note">${zoneSubtitle}</div>` : ''}
   `;
 }
