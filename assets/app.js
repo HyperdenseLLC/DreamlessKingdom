@@ -256,7 +256,7 @@ const MAP_ZONES = [
   },
 ];
 
-const MAP_TERRAIN_FEATURES = [
+const MAP_TOPOLOGY_FEATURES = [
   {
     id: 'choir-uplands',
     name: 'Choir Uplands',
@@ -1759,11 +1759,9 @@ function ensureMapStructure(){
   world.className = 'map-world';
   world.style.setProperty('--map-world-size', `${(MAP_WORLD_SCALE * 100).toFixed(0)}%`);
   viewport.appendChild(world);
-  const ground = document.createElement('div');
-  ground.className = 'map-ground';
-  ground.setAttribute('aria-hidden', 'true');
-  const terrainLayer = document.createElement('div');
-  terrainLayer.className = 'map-layer map-layer-terrain';
+  const topologyLayer = document.createElement('div');
+  topologyLayer.className = 'map-layer map-layer-topology';
+  topologyLayer.setAttribute('aria-hidden', 'true');
   const pathSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   pathSvg.classList.add('map-path');
   pathSvg.setAttribute('viewBox', '0 0 100 100');
@@ -1783,7 +1781,7 @@ function ensureMapStructure(){
   npcLayer.className = 'map-layer map-layer-npcs';
   const actorsLayer = document.createElement('div');
   actorsLayer.className = 'map-layer map-layer-actors';
-  world.append(ground, terrainLayer, pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
+  world.append(topologyLayer, pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
   map.appendChild(viewport);
   const detail = document.createElement('div');
   detail.id = 'map-zone-detail';
@@ -1796,8 +1794,7 @@ function ensureMapStructure(){
   map._layers = {
     viewport,
     world,
-    ground,
-    terrain: terrainLayer,
+    topology: topologyLayer,
     path: { svg: pathSvg, line: pathLine },
     zones: zonesLayer,
     markers: markersLayer,
@@ -1814,20 +1811,30 @@ function ensureMapStructure(){
   return map._layers;
 }
 
-function renderMapTerrain(layer){
+function renderMapTopology(layer){
   if(!layer) return;
   layer.innerHTML = '';
-  MAP_TERRAIN_FEATURES.forEach(feature => {
+  const featuresContainer = document.createElement('div');
+  featuresContainer.className = 'map-topology-features';
+  featuresContainer.setAttribute('aria-hidden', 'true');
+  layer.appendChild(featuresContainer);
+  MAP_TOPOLOGY_FEATURES.forEach(feature => {
     if(!feature) return;
     const node = document.createElement('div');
-    const classes = ['map-terrain'];
+    const classes = ['map-topology-feature'];
     if(feature.type){
-      classes.push(`map-terrain-${String(feature.type).toLowerCase().replace(/[^a-z0-9-]/g, '-')}`);
+      classes.push(`map-topology-${String(feature.type).toLowerCase().replace(/[^a-z0-9-]/g, '-')}`);
     }
     node.className = classes.join(' ');
     node.setAttribute('aria-hidden', 'true');
     if(feature.id){
-      node.dataset.terrainId = feature.id;
+      node.dataset.topologyId = feature.id;
+    }
+    if(feature.name){
+      node.dataset.topologyName = feature.name;
+    }
+    if(feature.type){
+      node.dataset.topologyType = feature.type;
     }
     const pos = projectIsoPoint(feature.x, feature.y);
     const size = projectIsoSize(feature.width, feature.height || feature.width);
@@ -1836,12 +1843,12 @@ function renderMapTerrain(layer){
     node.style.width = `${size.width}%`;
     node.style.height = `${size.height}%`;
     if(Number.isFinite(feature.rotation)){
-      node.style.setProperty('--terrain-rotation', `${feature.rotation}deg`);
+      node.style.setProperty('--topology-rotation', `${feature.rotation}deg`);
     }
     if(Number.isFinite(feature.intensity)){
-      node.style.setProperty('--terrain-intensity', feature.intensity);
+      node.style.setProperty('--topology-intensity', feature.intensity);
     }
-    layer.appendChild(node);
+    featuresContainer.appendChild(node);
   });
 }
 
@@ -1948,20 +1955,20 @@ function renderMapZoneDetail(){
     });
     detail.appendChild(list);
   }
-  const terrain = MAP_TERRAIN_FEATURES.filter(feature =>
+  const topology = MAP_TOPOLOGY_FEATURES.filter(feature =>
     Array.isArray(feature?.influences) && feature.influences.includes(zone.name)
   );
-  if(terrain.length){
+  if(topology.length){
     const heading = document.createElement('h4');
-    heading.textContent = 'Terrain influences';
+    heading.textContent = 'Topological influences';
     detail.appendChild(heading);
     const list = document.createElement('ul');
-    list.className = 'map-zone-terrain-list';
-    terrain.forEach(feature => {
+    list.className = 'map-zone-topology-list';
+    topology.forEach(feature => {
       if(!feature) return;
       const item = document.createElement('li');
       const label = document.createElement('strong');
-      label.textContent = feature.name || 'Terrain';
+      label.textContent = feature.name || 'Formation';
       item.appendChild(label);
       const typeLabel = feature.type
         ? `${feature.type.charAt(0).toUpperCase()}${feature.type.slice(1)} formation`
@@ -2023,8 +2030,8 @@ function renderMapMarkers(){
   if(!map) return;
   const layers = ensureMapStructure();
   if(!layers) return;
-  const { terrain, zones, markers, npcs, events } = layers;
-  renderMapTerrain(terrain);
+  const { topology, zones, markers, npcs, events } = layers;
+  renderMapTopology(topology);
   renderMapZones(zones);
   markers.innerHTML = '';
   if(npcs) npcs.innerHTML = '';
