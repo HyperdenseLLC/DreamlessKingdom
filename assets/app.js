@@ -1513,6 +1513,11 @@ function rectanglesOverlap(a, b){
   return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
 }
 
+function clampNumber(value, min, max){
+  if(!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, value));
+}
+
 function ensureMapStructure(){
   const map = document.querySelector('#map');
   if(!map) return null;
@@ -1553,6 +1558,12 @@ function ensureMapStructure(){
   detail.setAttribute('aria-atomic', 'true');
   detail.hidden = true;
   map.appendChild(detail);
+  const telemetry = document.createElement('div');
+  telemetry.className = 'map-telemetry';
+  telemetry.setAttribute('aria-live', 'polite');
+  telemetry.setAttribute('aria-atomic', 'true');
+  telemetry.textContent = 'Telemetry calibrating…';
+  map.appendChild(telemetry);
   map._layers = {
     viewport,
     world,
@@ -1563,6 +1574,7 @@ function ensureMapStructure(){
     npcs: npcLayer,
     actors: actorsLayer,
     detail,
+    telemetry,
   };
   if(state.mapCamera){
     world.style.setProperty('--map-offset-x', `${state.mapCamera.offsetX.toFixed(2)}px`);
@@ -1685,6 +1697,7 @@ function renderMapMarkers(){
   renderMapZones(zones);
   markers.innerHTML = '';
   if(npcs) npcs.innerHTML = '';
+  state.npcs.forEach(npc => { if(npc) npc.element = null; });
   const filteredIds = new Set(state.filtered.map(e=>e.id));
   state.entries.filter(e=>e.location).forEach(e=>{
     const marker = document.createElement('button');
@@ -1726,6 +1739,7 @@ function renderMapMarkers(){
       marker.innerHTML = '<span></span>';
       marker.addEventListener('click', ()=>openNpcModal(npc));
       npcs.appendChild(marker);
+      npc.element = marker;
     });
   }
   if(state.explorer){
@@ -2109,7 +2123,19 @@ async function main(){
   const res = await fetch('data/entries.json');
   const j = await res.json();
   state.entries = j.entries;
-  state.npcs = NPCS.map(npc => ({ ...npc }));
+  state.npcs = NPCS.map(npc => {
+    const location = npc.location ? { ...npc.location } : null;
+    return {
+      ...npc,
+      location,
+      home: location ? { x: location.x, y: location.y } : null,
+      wanderTarget: location ? { x: location.x, y: location.y } : null,
+      wanderPause: Math.random() * 4,
+      wanderSpeed: 0.65 + Math.random() * 0.55,
+      wanderRadius: 4 + Math.random() * 4,
+      element: null,
+    };
+  });
   state.variantCycle = applyVariantProfiles(state.entries);
   state.tags = new Set(state.entries.map(e=>e.tag));
   renderVariantCycle();
@@ -2124,6 +2150,8 @@ async function main(){
 window.addEventListener('hashchange', restoreFromHash);
 window.addEventListener('resize', ()=>{
   updateMapCamera({ immediate: true });
+  updateExplorerTrail();
+  renderMapTelemetry();
   requestAnimationFrame(resolveMapLabelCollisions);
 });
 document.addEventListener('DOMContentLoaded', ()=>{
@@ -2207,20 +2235,170 @@ function updateExplorerTrail(){
   if(!map) return;
   const layers = ensureMapStructure();
   if(!layers) return;
+  const svg = layers.path?.svg;
   const line = layers.path?.line;
-  if(!line) return;
+  if(!svg || !line) return;
   const path = state.explorer?.path || [];
   if(!path.length){
     line.setAttribute('points', '');
     line.classList.remove('active');
+    svg.setAttribute('viewBox', '0 0 100 100');
     return;
   }
-  const points = path.map(pt => {
-    const projected = projectIsoPoint(pt.x, pt.y);
-    return `${projected.left},${projected.top}`;
-  }).join(' ');
-  line.setAttribute('points', points);
+  const world = layers.world;
+  const width = world?.clientWidth || 0;
+  const height = world?.clientHeight || 0;
+  if(width > 0 && height > 0){
+    svg.setAttribute('viewBox', `0 0 ${width.toFixed(2)} ${height.toFixed(2)}`);
+    const points = path.map(pt => {
+      const projected = projectIsoPoint(pt.x, pt.y);
+      const px = (projected.left / 100) * width;
+      const py = (projected.top / 100) * height;
+      return `${px.toFixed(2)},${py.toFixed(2)}`;
+    }).join(' ');
+    line.setAttribute('points', points);
+  } else {
+    svg.setAttribute('viewBox', '0 0 100 100');
+    const points = path.map(pt => {
+      const projected = projectIsoPoint(pt.x, pt.y);
+      return `${projected.left},${projected.top}`;
+    }).join(' ');
+    line.setAttribute('points', points);
+  }
   line.classList.toggle('active', path.length > 1);
+}
+
+function chooseNpcWanderTarget(npc){
+  const base = npc?.home || npc?.location;
+  if(!base) return null;
+  const radius = clampNumber(npc?.wanderRadius, 2, 12);
+  const angle = Math.random() * Math.PI * 2;
+  const distance = Math.random() * radius;
+  const offsetX = Math.cos(angle) * distance;
+  const offsetY = Math.sin(angle) * distance;
+  return {
+    x: clampNumber(base.x + offsetX, 4, 96),
+    y: clampNumber(base.y + offsetY, 4, 96),
+  };
+}
+
+function updateNpcWandering(dt){
+  if(!Array.isArray(state.npcs) || !state.npcs.length) return;
+  state.npcs.forEach(npc => {
+    if(!npc || !npc.location) return;
+    if(typeof npc.wanderPause !== 'number'){
+      npc.wanderPause = Math.random() * 3;
+    }
+    if(!npc.wanderTarget){
+      npc.wanderTarget = chooseNpcWanderTarget(npc);
+    }
+    if(npc.wanderPause > 0){
+      npc.wanderPause = Math.max(0, npc.wanderPause - dt);
+      return;
+    }
+    const target = npc.wanderTarget;
+    if(!target){
+      npc.wanderPause = 1.5 + Math.random() * 2.5;
+      return;
+    }
+    const dx = target.x - npc.location.x;
+    const dy = target.y - npc.location.y;
+    const dist = Math.hypot(dx, dy);
+    if(dist < 0.12){
+      npc.wanderPause = 1.5 + Math.random() * 4;
+      npc.wanderTarget = chooseNpcWanderTarget(npc);
+      return;
+    }
+    const speed = clampNumber(npc.wanderSpeed, 0.35, 1.6) * dt;
+    if(speed <= 0){
+      npc.wanderTarget = chooseNpcWanderTarget(npc);
+      return;
+    }
+    const step = Math.min(dist, speed);
+    if(step <= 0){
+      npc.wanderTarget = chooseNpcWanderTarget(npc);
+      return;
+    }
+    npc.location.x = clampNumber(npc.location.x + (dx / dist) * step, 3, 97);
+    npc.location.y = clampNumber(npc.location.y + (dy / dist) * step, 3, 97);
+    if(npc.element){
+      const pos = projectIsoPoint(npc.location.x, npc.location.y);
+      npc.element.style.left = `${pos.left}%`;
+      npc.element.style.top = `${pos.top}%`;
+    }
+  });
+}
+
+function findZoneForCoordinate(x, y){
+  if(!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  let insideCandidate = null;
+  let insideDistance = Infinity;
+  let fallback = null;
+  let fallbackDistance = Infinity;
+  MAP_ZONES.forEach(zone => {
+    const width = Number.isFinite(zone.width) ? zone.width : 0;
+    const height = Number.isFinite(zone.height) ? zone.height : width;
+    const halfW = width / 2;
+    const halfH = height / 2;
+    const dx = x - zone.x;
+    const dy = y - zone.y;
+    const distance = Math.hypot(dx, dy);
+    if(width && height){
+      if(x >= zone.x - halfW && x <= zone.x + halfW && y >= zone.y - halfH && y <= zone.y + halfH){
+        if(distance < insideDistance){
+          insideDistance = distance;
+          insideCandidate = zone;
+        }
+      }
+    }
+    if(distance < fallbackDistance){
+      fallbackDistance = distance;
+      fallback = zone;
+    }
+  });
+  return insideCandidate || fallback;
+}
+
+function hashString(str){
+  return Array.from(str || '').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+}
+
+function renderMapTelemetry(){
+  const layers = ensureMapStructure();
+  if(!layers?.telemetry) return;
+  const el = layers.telemetry;
+  const ex = state.explorer;
+  if(!ex){
+    el.textContent = 'Telemetry calibrating…';
+    return;
+  }
+  const zone = findZoneForCoordinate(ex.x, ex.y);
+  const elapsed = ex.elapsedTime || 0;
+  const locationName = zone?.name || 'Uncharted stretch';
+  const zoneSubtitle = zone?.subtitle || '';
+  const zoneSeed = hashString(zone?.name || 'kingdom');
+  const timeScale = 180; // 1 real second = 3 in-world minutes
+  const worldMinutes = (elapsed * timeScale) % (24 * 60);
+  const hours = Math.floor(worldMinutes / 60);
+  const minutes = Math.floor(worldMinutes % 60);
+  const timeLabel = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  const locationFactor = clampNumber((ex.x + ex.y) / 200, 0, 1);
+  const drift = (Math.sin(elapsed / 12 + zoneSeed * 0.12) + 1) / 2;
+  const windBase = 6 + (zoneSeed % 7);
+  const wind = clampNumber(windBase + Math.sin(elapsed / 7 + locationFactor * 3) * 3 + drift * 4, 2, 26);
+  const humidity = clampNumber(55 + (1 - locationFactor) * 28 + Math.cos(elapsed / 9 + zoneSeed * 0.3) * 14, 24, 97);
+  const temperature = clampNumber(18 + Math.sin(elapsed / 11 + zoneSeed * 0.2) * 6 - locationFactor * 4, 6, 32);
+  const aurora = clampNumber(38 + drift * 48 + (ex.sceneEvent ? 12 : 0), 20, 98);
+  el.innerHTML = `
+    <div class="telemetry-heading">Field Telemetry</div>
+    <div class="telemetry-pair"><span>Locale</span><strong>${locationName}</strong></div>
+    <div class="telemetry-pair"><span>Time</span><strong>${timeLabel}</strong></div>
+    <div class="telemetry-pair"><span>Wind</span><strong>${wind.toFixed(1)} knots</strong></div>
+    <div class="telemetry-pair"><span>Humidity</span><strong>${Math.round(humidity)}%</strong></div>
+    <div class="telemetry-pair"><span>Ambient</span><strong>${temperature.toFixed(1)}°C</strong></div>
+    <div class="telemetry-pair"><span>Aurora Flux</span><strong>${Math.round(aurora)}%</strong></div>
+    ${zoneSubtitle ? `<div class="telemetry-note">${zoneSubtitle}</div>` : ''}
+  `;
 }
 
 function recordExplorerPosition(force = false){
@@ -2636,6 +2814,7 @@ function triggerSceneEvent(){
   renderExplorerLog();
   renderSceneEvent();
   renderExplorerStatus();
+  renderMapTelemetry();
 }
 
 function clearSceneEvent(){
@@ -2649,6 +2828,7 @@ function clearSceneEvent(){
   ex.sceneCooldown = Math.max(ex.sceneCooldown || 0, 18);
   renderSceneEvent();
   renderExplorerStatus();
+  renderMapTelemetry();
 }
 
 function pickExplorerTarget(){
@@ -2753,6 +2933,10 @@ function handleExplorerNpc(npc){
   ex.target = null;
   if(ex.routeCollected) ex.routeCollected.clear();
   if(Array.isArray(ex.routeSequence)) ex.routeSequence.length = 0;
+  if(npc){
+    npc.wanderPause = Math.max(npc.wanderPause || 0, duration + 1.5);
+    npc.wanderTarget = { x: npc.location.x, y: npc.location.y };
+  }
   renderExplorerUI();
 }
 
@@ -2762,6 +2946,13 @@ function explorerStep(ts){
   if(!ex.lastTick) ex.lastTick = ts;
   const dt = Math.min((ts - ex.lastTick)/1000, 0.25);
   ex.lastTick = ts;
+  ex.elapsedTime = (ex.elapsedTime || 0) + dt;
+  updateNpcWandering(dt);
+  ex.telemetryTimer = (ex.telemetryTimer || 0) + dt;
+  if(ex.telemetryTimer >= 0.5){
+    ex.telemetryTimer = 0;
+    renderMapTelemetry();
+  }
 
   if(ex.sceneTimer && ex.sceneTimer > 0){
     ex.sceneTimer = Math.max(0, ex.sceneTimer - dt);
@@ -2842,8 +3033,8 @@ function initExplorer(){
   state.explorer = {
     x: 50,
     y: 50,
-    baseSpeed: 5,
-    speed: 5,
+    baseSpeed: 2.5,
+    speed: 2.5,
     collected: new Set(),
     routeCollected: new Set(),
     routeSequence: [],
@@ -2866,10 +3057,13 @@ function initExplorer(){
     sceneTimer: 0,
     sceneTimerDisplay: null,
     sceneCooldown: 14,
+    elapsedTime: 0,
+    telemetryTimer: 0,
   };
   ensureExplorerElement();
   recordExplorerPosition(true);
   updateMapCamera({ immediate: true });
   renderExplorerUI();
+  renderMapTelemetry();
   state.explorerFrame = requestAnimationFrame(explorerStep);
 }
