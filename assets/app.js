@@ -10,9 +10,11 @@ const state = {
   variantCycle: null,
   npcs: [],
   selectedZone: null,
+  mapCamera: null,
 };
 
-const MAP_WORLD_SCALE = 1.12;
+const MAP_WORLD_SCALE = 1.32;
+const MAP_ZONE_SIZE_SCALE = 0.82;
 
 const SCENE_EVENTS = [
   {
@@ -73,77 +75,65 @@ const ISO_PROJECTION = (()=>{
 
 const MAP_ZONES = [
   {
-    name: 'Aurora Marches',
-    description: 'Skybreak Ridge • Wind-Carved Steps',
-    x: 20,
-    y: 18,
-    width: 28,
-    height: 20,
-    regions: ['Skybreak Ridge', 'Wind-Carved Steps']
-  },
-  {
-    name: 'Choir Expanse',
+    name: 'The Village',
     description: 'Resonant Plaza • Choir Ruins • Alchemists\' Span',
-    x: 38,
-    y: 30,
-    width: 30,
-    height: 22,
-    regions: ['Resonant Plaza', 'Choir Ruins', "Alchemists' Span"]
-  },
-  {
-    name: 'Verdant Hollows',
-    description: 'Dreamroot Terraces & Whispering Groves',
-    x: 30,
-    y: 60,
-    width: 34,
-    height: 24,
-    regions: ['Verdant Hollows', 'Whispering Arboretum']
-  },
-  {
-    name: 'Carnival Ribbon',
-    description: 'Sunken Promenade • Carnival Greenways',
     x: 46,
-    y: 72,
-    width: 28,
-    height: 22,
-    regions: ['Sunken Promenade', 'Carnival Quarter Greenways']
-  },
-  {
-    name: 'Radiant Courts',
-    description: 'Gilt Palace • Veiled Colonnade • Shatterlight Forge',
-    x: 62,
-    y: 40,
+    y: 36,
     width: 32,
     height: 26,
-    regions: ['Gilt Palace Conservatory', 'Veiled Colonnade', 'Shatterlight Forge']
+    regions: ['Resonant Plaza', 'Choir Ruins', "Alchemists' Span"],
+    subtitle: 'Markets and memory-scribes',
   },
   {
-    name: 'Tideglass Reach',
-    description: 'Undersea Observatory • Tideglass Reaches',
-    x: 82,
-    y: 52,
+    name: 'The Parade',
+    description: 'Sunken Promenade • Carnival Quarter Greenways',
+    x: 48,
+    y: 64,
+    width: 26,
+    height: 22,
+    regions: ['Sunken Promenade', 'Carnival Quarter Greenways'],
+    subtitle: 'Festival route through the lowlights',
+  },
+  {
+    name: 'The Forest',
+    description: 'Verdant Hollows • Whispering Arboretum • Wanderer\'s Causeway • Archive Warrens',
+    x: 34,
+    y: 60,
+    width: 38,
+    height: 36,
+    regions: ['Verdant Hollows', 'Whispering Arboretum', "Wanderer's Causeway", 'Archive Warrens'],
+    subtitle: 'Wild growth hugging the southern ridge',
+  },
+  {
+    name: 'The Deep Forest',
+    description: 'Skybreak Ridge • Wind-Carved Steps',
+    x: 20,
+    y: 22,
+    width: 24,
+    height: 22,
+    regions: ['Skybreak Ridge', 'Wind-Carved Steps'],
+    subtitle: 'High canopies and aurora-lit trails',
+  },
+  {
+    name: 'The Mines',
+    description: 'Veiled Deepways • Deep Mines • Dusk Tunnels Fen',
+    x: 66,
+    y: 74,
     width: 28,
-    height: 24,
-    regions: ['Undersea Observatory', 'Tideglass Reaches']
+    height: 28,
+    regions: ['Veiled Deepways', 'Deep Mines', 'Dusk Tunnels Fen'],
+    subtitle: 'Collapsed shafts and fungal lifts',
   },
   {
-    name: 'Veiled Deepways',
-    description: 'Deep Mines • Dusk Tunnels',
-    x: 72,
-    y: 72,
-    width: 30,
-    height: 26,
-    regions: ['Deep Mines', 'Dusk Tunnels Fen']
+    name: 'The Palace',
+    description: 'Gilt Palace Conservatory • Veiled Colonnade • Shatterlight Forge • Undersea Observatory • Tideglass Reaches',
+    x: 68,
+    y: 48,
+    width: 36,
+    height: 34,
+    regions: ['Gilt Palace Conservatory', 'Veiled Colonnade', 'Shatterlight Forge', 'Undersea Observatory', 'Tideglass Reaches'],
+    subtitle: 'Seat of rationed wonder',
   },
-  {
-    name: 'Western Fringe',
-    description: 'Wanderer\'s Causeway • Archive Warrens',
-    x: 22,
-    y: 78,
-    width: 30,
-    height: 24,
-    regions: ["Wanderer's Causeway", 'Archive Warrens']
-  }
 ];
 
 const NPCS = [
@@ -1510,9 +1500,11 @@ function projectIsoSize(width, height){
   const h = Math.max(0, hSource);
   const isoWidth = (w * ISO_PROJECTION.cos / (ISO_PROJECTION.rangeX * 2)) * ISO_PROJECTION.scaleX;
   const isoHeight = (h * ISO_PROJECTION.sin / 100) * ISO_PROJECTION.scaleY;
+  const scaledWidth = isoWidth * MAP_ZONE_SIZE_SCALE;
+  const scaledHeight = isoHeight * MAP_ZONE_SIZE_SCALE;
   return {
-    width: Math.min(ISO_PROJECTION.scaleX, Math.max(isoWidth, 6)),
-    height: Math.min(ISO_PROJECTION.scaleY, Math.max(isoHeight, Math.max(isoWidth * 0.65, 5))),
+    width: Math.min(ISO_PROJECTION.scaleX, Math.max(scaledWidth, 5)),
+    height: Math.min(ISO_PROJECTION.scaleY, Math.max(scaledHeight, Math.max(scaledWidth * 0.65, 4))),
   };
 }
 
@@ -1572,6 +1564,10 @@ function ensureMapStructure(){
     actors: actorsLayer,
     detail,
   };
+  if(state.mapCamera){
+    world.style.setProperty('--map-offset-x', `${state.mapCamera.offsetX.toFixed(2)}px`);
+    world.style.setProperty('--map-offset-y', `${state.mapCamera.offsetY.toFixed(2)}px`);
+  }
   return map._layers;
 }
 
@@ -1606,8 +1602,18 @@ function renderMapZones(layer){
     label.setAttribute('tabindex', '0');
     label.setAttribute('aria-expanded', String(isSelected));
     label.setAttribute('aria-controls', 'map-zone-detail');
-    label.setAttribute('aria-label', `${zone.name}. Select to view region details.`);
-    label.innerHTML = `<strong>${zone.name}</strong>`;
+    label.innerHTML = '';
+    const title = document.createElement('strong');
+    title.textContent = zone.name;
+    label.appendChild(title);
+    const subtitleText = zone.subtitle || (Array.isArray(zone.regions) ? zone.regions.join(' • ') : '');
+    const ariaSummary = subtitleText ? `${zone.name}. ${subtitleText}. Select to view region details.` : `${zone.name}. Select to view region details.`;
+    label.setAttribute('aria-label', ariaSummary);
+    if(subtitleText){
+      const subtitle = document.createElement('span');
+      subtitle.textContent = subtitleText;
+      label.appendChild(subtitle);
+    }
     label.addEventListener('click', () => {
       state.selectedZone = state.selectedZone === zone ? null : zone;
       renderSelectedZoneState();
@@ -1658,6 +1664,16 @@ function renderMapZoneDetail(){
   const body = document.createElement('p');
   body.textContent = zone.description;
   detail.append(title, body);
+  if(Array.isArray(zone.regions) && zone.regions.length){
+    const list = document.createElement('ul');
+    list.className = 'map-zone-region-list';
+    zone.regions.forEach(region => {
+      const item = document.createElement('li');
+      item.textContent = region;
+      list.appendChild(item);
+    });
+    detail.appendChild(list);
+  }
 }
 
 function renderMapMarkers(){
@@ -2165,13 +2181,22 @@ function updateMapCamera({ immediate = false } = {}){
   const offsetY = viewportHeight / 2 - targetY;
   const maxOffsetX = Math.max(0, (worldWidth - viewportWidth) / 2);
   const maxOffsetY = Math.max(0, (worldHeight - viewportHeight) / 2);
-  const clampedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX));
-  const clampedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY));
+  const desiredX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX));
+  const desiredY = Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY));
+  let camera = state.mapCamera;
+  if(!camera || immediate){
+    camera = state.mapCamera = { offsetX: desiredX, offsetY: desiredY };
+  }
+  const lerpFactor = immediate ? 1 : 0.22;
+  const nextX = immediate ? desiredX : camera.offsetX + (desiredX - camera.offsetX) * lerpFactor;
+  const nextY = immediate ? desiredY : camera.offsetY + (desiredY - camera.offsetY) * lerpFactor;
+  camera.offsetX = Math.abs(nextX - desiredX) < 0.1 ? desiredX : nextX;
+  camera.offsetY = Math.abs(nextY - desiredY) < 0.1 ? desiredY : nextY;
   if(immediate){
     world.classList.add('no-transition');
   }
-  world.style.setProperty('--map-offset-x', `${clampedX}px`);
-  world.style.setProperty('--map-offset-y', `${clampedY}px`);
+  world.style.setProperty('--map-offset-x', `${camera.offsetX.toFixed(2)}px`);
+  world.style.setProperty('--map-offset-y', `${camera.offsetY.toFixed(2)}px`);
   if(immediate){
     requestAnimationFrame(()=> world.classList.remove('no-transition'));
   }
