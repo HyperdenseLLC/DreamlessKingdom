@@ -644,6 +644,28 @@ button:hover, .badge:hover {
   z-index: 3;
 }
 
+.map-layer-topography {
+  z-index: 1;
+  opacity: 0.92;
+}
+
+.map-topography-ascii {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 8% 6%;
+  font-family: 'Fira Code', 'Source Code Pro', 'Inconsolata', monospace;
+  font-size: clamp(0.38rem, 0.62vw, 0.58rem);
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  white-space: pre;
+  text-align: center;
+  color: rgba(144, 196, 228, 0.55);
+  text-shadow: 0 0 14px rgba(48, 118, 176, 0.24);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
 
 .map-layer-zones {
   z-index: 3;
@@ -823,7 +845,7 @@ button:hover, .badge:hover {
   color: currentColor;
   text-shadow: 0 0 14px rgba(212, 175, 55, 0.18);
   pointer-events: none;
-  opacity: 0.85;
+  opacity: 0.38;
   mix-blend-mode: screen;
 }
 
@@ -842,12 +864,12 @@ button:hover, .badge:hover {
 }
 
 .map-zone.active .map-zone-ascii {
-  opacity: 0.92;
+  opacity: 0.62;
   text-shadow: 0 0 18px rgba(212, 175, 55, 0.26);
 }
 
 .map-zone.selected .map-zone-ascii {
-  opacity: 1;
+  opacity: 0.78;
   text-shadow: 0 0 22px rgba(212, 175, 55, 0.4);
 }
 
