@@ -31,6 +31,7 @@ button:hover{border-color:var(--accent)}
 .marker:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .marker span{position:absolute;width:40%;height:40%;border-radius:50%;background:#121622}
 .marker.dim{background:rgba(147,152,172,.65);border-color:rgba(211,214,224,.4);box-shadow:none;animation:none}
+.map-topography-ascii{position:absolute;inset:0;margin:0;padding:8% 6%;font-family:'Fira Code','Source Code Pro','Inconsolata',monospace;font-size:clamp(.36rem,.6vw,.56rem);line-height:1.05;letter-spacing:.06em;white-space:pre;text-align:center;color:rgba(144,196,228,.55);text-shadow:0 0 14px rgba(48,118,176,.24);mix-blend-mode:screen;pointer-events:none;opacity:.92}
 .map-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;color:var(--muted)}
 .legend-item{display:inline-flex;align-items:center;gap:6px}
 .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);border:1px solid rgba(255,255,255,.8)}

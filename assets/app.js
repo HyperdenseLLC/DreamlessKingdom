@@ -501,6 +501,151 @@ const TOPOLOGY_FEATURE_MAP = new Map(
   MAP_TOPOLOGY_FEATURES.map(feature => [feature.id, feature])
 );
 
+const WORLD_TOPOGRAPHY = Object.freeze({
+  gridWidth: 72,
+  gridHeight: 42,
+  seed: 0.618,
+});
+
+const WORLD_TOPOGRAPHY_PALETTE = [
+  { limit: -1.15, pattern: '~~' },
+  { limit: -0.7, pattern: 'vv' },
+  { limit: -0.25, pattern: '--' },
+  { limit: 0.2, pattern: '..' },
+  { limit: 0.6, pattern: '::' },
+  { limit: 1, pattern: '/\\' },
+  { limit: Infinity, pattern: '^^' },
+];
+
+const WORLD_TOPOGRAPHY_RIDGE_PATTERNS = [
+  { limit: 15, pattern: '||' },
+  { limit: 35, pattern: '/\\' },
+  { limit: 70, pattern: '--' },
+  { limit: 110, pattern: '\\/' },
+  { limit: 145, pattern: '\\' },
+  { limit: 180, pattern: '||' },
+];
+
+let cachedTopographyAscii = null;
+
+function generateWorldTopographyAscii(){
+  if(cachedTopographyAscii) return cachedTopographyAscii;
+  const width = WORLD_TOPOGRAPHY.gridWidth;
+  const height = WORLD_TOPOGRAPHY.gridHeight;
+  const rows = [];
+  for(let gy = 0; gy < height; gy += 1){
+    const py = height <= 1 ? 0 : (gy / (height - 1)) * 100;
+    let row = '';
+    for(let gx = 0; gx < width; gx += 1){
+      const px = width <= 1 ? 0 : (gx / (width - 1)) * 100;
+      const sample = computeWorldTopographySample(px, py);
+      let pattern = pickTopographyPattern(sample);
+      const charIndex = Math.abs(Math.floor(gx + gy)) % pattern.length;
+      let char = pattern[charIndex] || pattern[0] || '.';
+      if(sample.elevation > 1.35 && sample.hillInfluence > 0.55 && ((gx + gy) % 5 === 0)){
+        char = 'A';
+      } else if(sample.elevation > 1.75 && sample.hillInfluence > 0.7 && ((gx * 3 + gy) % 7 === 0)){
+        char = 'M';
+      } else if(sample.elevation < -0.85 && sample.valleyInfluence > 0.5 && ((gx + gy * 2) % 4 === 0)){
+        char = 'v';
+      }
+      row += char;
+    }
+    rows.push(row);
+  }
+  cachedTopographyAscii = rows.join('\n');
+  return cachedTopographyAscii;
+}
+
+function computeWorldTopographySample(px, py){
+  let elevation = ((py / 100) - 0.5) * 0.9;
+  elevation += ((px / 100) - 0.5) * 0.4;
+  let hillInfluence = 0;
+  let valleyInfluence = 0;
+  let ridgeInfluence = 0;
+  let ridgeRotation = null;
+  MAP_TOPOLOGY_FEATURES.forEach(feature => {
+    if(!feature) return;
+    const spanX = Math.max(6, Number.isFinite(feature.width) ? feature.width : 20);
+    const spanY = Math.max(6, Number.isFinite(feature.height) ? feature.height : spanX);
+    const dx = px - feature.x;
+    const dy = py - feature.y;
+    const distX = dx / (spanX * 0.5);
+    const distY = dy / (spanY * 0.5);
+    const distance = Math.hypot(distX, distY);
+    if(distance > 2.2) return;
+    const falloff = Math.max(0, 1 - (distance ** 1.35));
+    if(falloff <= 0) return;
+    const intensity = Number.isFinite(feature.intensity) ? feature.intensity : 1;
+    const influence = falloff * intensity;
+    const type = feature.type || 'hill';
+    if(type === 'valley' || type === 'sink'){
+      elevation -= influence * 1.2;
+      valleyInfluence = Math.max(valleyInfluence, influence);
+    } else if(type === 'ridge'){
+      elevation += influence * 0.9;
+      if(influence > ridgeInfluence){
+        ridgeInfluence = influence;
+        ridgeRotation = feature.rotation ?? 0;
+      }
+    } else {
+      elevation += influence * 1.3;
+      hillInfluence = Math.max(hillInfluence, influence);
+      if(influence > ridgeInfluence && Number.isFinite(feature.rotation)){
+        ridgeInfluence = influence * 0.6;
+        ridgeRotation = feature.rotation;
+      }
+    }
+  });
+  const jitter = seededJitter(WORLD_TOPOGRAPHY.seed, px * 1.71 + py * 2.13, 0.55);
+  const drift = seededJitter(WORLD_TOPOGRAPHY.seed, px * -0.42 + py * 0.58, 0.35);
+  elevation += jitter * 0.35 + drift * 0.25;
+  return { elevation, hillInfluence, valleyInfluence, ridgeInfluence, ridgeRotation };
+}
+
+function pickTopographyPattern(sample){
+  if(sample.ridgeInfluence > 0.55 && Number.isFinite(sample.ridgeRotation)){
+    return pickOrientationPattern(sample.ridgeRotation);
+  }
+  if(sample.valleyInfluence > 0.6){
+    return '~~';
+  }
+  let pattern = '::';
+  for(const option of WORLD_TOPOGRAPHY_PALETTE){
+    if(sample.elevation <= option.limit){
+      pattern = option.pattern;
+      break;
+    }
+  }
+  if(sample.hillInfluence > 0.65 && sample.elevation > 0.4){
+    const oriented = Number.isFinite(sample.ridgeRotation)
+      ? pickOrientationPattern(sample.ridgeRotation)
+      : null;
+    if(oriented) pattern = oriented;
+  }
+  return pattern;
+}
+
+function pickOrientationPattern(rotation){
+  const normalized = Math.abs(rotation % 180);
+  for(const option of WORLD_TOPOGRAPHY_RIDGE_PATTERNS){
+    if(normalized <= option.limit){
+      return option.pattern;
+    }
+  }
+  const fallback = WORLD_TOPOGRAPHY_RIDGE_PATTERNS[WORLD_TOPOGRAPHY_RIDGE_PATTERNS.length - 1];
+  return fallback ? fallback.pattern : '||';
+}
+
+function renderMapTopography(layers){
+  const asciiNode = layers?.topography?.ascii;
+  if(!asciiNode) return;
+  const ascii = generateWorldTopographyAscii();
+  if(ascii && asciiNode.textContent !== ascii){
+    asciiNode.textContent = ascii;
+  }
+}
+
 const NPCS = [
   {
     id: 'archivist-sel',
@@ -1963,6 +2108,13 @@ function ensureMapStructure(){
   world.className = 'map-world';
   world.style.setProperty('--map-world-size', `${(MAP_WORLD_SCALE * 100).toFixed(0)}%`);
   viewport.appendChild(world);
+  const topographyLayer = document.createElement('div');
+  topographyLayer.className = 'map-layer map-layer-topography';
+  topographyLayer.setAttribute('aria-hidden', 'true');
+  const topographyAscii = document.createElement('pre');
+  topographyAscii.className = 'map-topography-ascii';
+  topographyAscii.setAttribute('aria-hidden', 'true');
+  topographyLayer.appendChild(topographyAscii);
   const pathSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   pathSvg.classList.add('map-path');
   pathSvg.setAttribute('viewBox', '0 0 100 100');
@@ -1982,7 +2134,7 @@ function ensureMapStructure(){
   npcLayer.className = 'map-layer map-layer-npcs';
   const actorsLayer = document.createElement('div');
   actorsLayer.className = 'map-layer map-layer-actors';
-  world.append(pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
+  world.append(topographyLayer, pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
   map.appendChild(viewport);
   const detail = document.createElement('div');
   detail.id = 'map-zone-detail';
@@ -2001,6 +2153,7 @@ function ensureMapStructure(){
   map._layers = {
     viewport,
     world,
+    topography: { layer: topographyLayer, ascii: topographyAscii },
     path: { svg: pathSvg, line: pathLine },
     zones: zonesLayer,
     markers: markersLayer,
@@ -2011,6 +2164,7 @@ function ensureMapStructure(){
     arrival,
     telemetry,
   };
+  renderMapTopography(map._layers);
   if(state.mapCamera){
     if(typeof state.mapCamera.manual !== 'boolean'){
       state.mapCamera.manual = false;
@@ -2291,6 +2445,10 @@ function generateZoneAsciiArt(zone, orientation){
 }
 
 function renderMapZones(layer){
+  const layers = ensureMapStructure();
+  if(layers){
+    renderMapTopography(layers);
+  }
   if(!layer) return;
   layer.innerHTML = '';
   const activeRegions = new Set(
