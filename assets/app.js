@@ -191,60 +191,89 @@ const MAP_ZONES = [
     description: 'Resonant Plaza • Choir Ruins • Alchemists\' Span',
     x: 46,
     y: 36,
-    width: 32,
-    height: 26,
+    width: 34,
+    height: 28,
     regions: ['Resonant Plaza', 'Choir Ruins', "Alchemists' Span"],
     subtitle: 'Markets and memory-scribes',
+    shapeSeed: 0.32,
+    contours: [
+      { feature: 'choir-uplands', weight: 1.2 },
+      { feature: 'ridge-of-sighs', weight: 0.7 },
+    ],
   },
   {
     name: 'The Parade',
     description: 'Sunken Promenade • Carnival Quarter Greenways',
-    x: 48,
-    y: 64,
-    width: 26,
-    height: 22,
+    x: 52,
+    y: 68,
+    width: 30,
+    height: 26,
     regions: ['Sunken Promenade', 'Carnival Quarter Greenways'],
     subtitle: 'Festival route through the lowlights',
+    shapeSeed: 0.64,
+    contours: [
+      { feature: 'sunken-promenade', weight: 1.4 },
+      { feature: 'ridge-of-sighs', weight: 0.5 },
+    ],
   },
   {
     name: 'The Forest',
     description: 'Verdant Hollows • Whispering Arboretum • Wanderer\'s Causeway • Archive Warrens',
-    x: 34,
-    y: 60,
-    width: 38,
-    height: 36,
+    x: 36,
+    y: 62,
+    width: 42,
+    height: 38,
     regions: ['Verdant Hollows', 'Whispering Arboretum', "Wanderer's Causeway", 'Archive Warrens'],
     subtitle: 'Wild growth hugging the southern ridge',
+    shapeSeed: 0.12,
+    contours: [
+      { feature: 'ridge-of-sighs', weight: 1.2 },
+      { feature: 'sunken-promenade', weight: 0.6 },
+    ],
   },
   {
     name: 'The Deep Forest',
     description: 'Skybreak Ridge • Wind-Carved Steps',
-    x: 20,
-    y: 22,
-    width: 24,
-    height: 22,
+    x: 24,
+    y: 24,
+    width: 26,
+    height: 24,
     regions: ['Skybreak Ridge', 'Wind-Carved Steps'],
     subtitle: 'High canopies and aurora-lit trails',
+    shapeSeed: 0.52,
+    contours: [
+      { feature: 'ridge-of-sighs', weight: 0.8 },
+      { feature: 'choir-uplands', weight: 0.6 },
+    ],
   },
   {
     name: 'The Mines',
     description: 'Veiled Deepways • Deep Mines • Dusk Tunnels Fen',
-    x: 66,
-    y: 74,
-    width: 28,
-    height: 28,
+    x: 68,
+    y: 78,
+    width: 32,
+    height: 30,
     regions: ['Veiled Deepways', 'Deep Mines', 'Dusk Tunnels Fen'],
     subtitle: 'Collapsed shafts and fungal lifts',
+    shapeSeed: 0.21,
+    contours: [
+      { feature: 'deepway-sink', weight: 1.6 },
+    ],
   },
   {
     name: 'The Palace',
     description: 'Gilt Palace Conservatory • Veiled Colonnade • Shatterlight Forge • Undersea Observatory • Tideglass Reaches',
-    x: 68,
+    x: 70,
     y: 48,
-    width: 36,
-    height: 34,
+    width: 38,
+    height: 36,
     regions: ['Gilt Palace Conservatory', 'Veiled Colonnade', 'Shatterlight Forge', 'Undersea Observatory', 'Tideglass Reaches'],
     subtitle: 'Seat of rationed wonder',
+    shapeSeed: 0.84,
+    contours: [
+      { feature: 'palace-terraces', weight: 1.5 },
+      { feature: 'deepway-sink', weight: 0.4 },
+    ],
   },
 ];
 
@@ -315,6 +344,10 @@ const MAP_TOPOLOGY_FEATURES = [
     effect: 'Collapsed earth forms a sink that slows haulers though lift caravans can coast along exposed rails.',
   },
 ];
+
+const TOPOLOGY_FEATURE_MAP = new Map(
+  MAP_TOPOLOGY_FEATURES.map(feature => [feature.id, feature])
+);
 
 const NPCS = [
   {
@@ -1868,6 +1901,115 @@ function initMapCameraControls(layers){
   });
 }
 
+function resolveZoneFeatures(zone){
+  if(!zone) return [];
+  const features = new Map();
+  MAP_TOPOLOGY_FEATURES.forEach(feature => {
+    if(Array.isArray(feature?.influences) && feature.influences.includes(zone.name)){
+      features.set(feature.id, { feature, weight: 1 });
+    }
+  });
+  if(Array.isArray(zone.contours)){
+    zone.contours.forEach(contour => {
+      const id = contour?.feature || contour?.id;
+      if(!id) return;
+      const feature = TOPOLOGY_FEATURE_MAP.get(id);
+      if(!feature) return;
+      const weight = Number.isFinite(contour?.weight) ? contour.weight : 1;
+      const existing = features.get(feature.id);
+      if(existing){
+        existing.weight += weight;
+      } else {
+        features.set(feature.id, { feature, weight });
+      }
+    });
+  }
+  return Array.from(features.values());
+}
+
+function computeZoneSeedValue(zone){
+  const base = Number.isFinite(zone?.shapeSeed) ? zone.shapeSeed : 0;
+  const text = zone?.name || '';
+  let hash = 0;
+  for(let i = 0; i < text.length; i += 1){
+    hash = ((hash << 5) - hash) + text.charCodeAt(i);
+    hash |= 0;
+  }
+  const normalized = Math.abs(hash % 997) / 997;
+  return base + normalized;
+}
+
+function seededNoise(seed, step){
+  const value = Math.sin((seed + step * 0.37) * 12.9898 + (seed * 78.233)) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+function generateZoneClipPath(zone, features = resolveZoneFeatures(zone)){
+  if(!zone) return null;
+  const steps = 14;
+  if(steps < 3) return null;
+  const ratio = Number.isFinite(zone.height) && Number.isFinite(zone.width) && zone.width > 0
+    ? clampNumber(zone.height / zone.width, 0.6, 1.6)
+    : 1;
+  const diameter = Math.max(zone.width || 0, zone.height || 0);
+  const scale = clampNumber(diameter / 36, 0.7, 1.35);
+  const baseRadius = 30 * scale;
+  const minRadius = 18 * scale;
+  const maxRadius = 52 * scale;
+  const seed = computeZoneSeedValue(zone);
+  const points = [];
+  for(let i = 0; i < steps; i += 1){
+    const angle = (i / steps) * Math.PI * 2;
+    let radius = baseRadius + (seededNoise(seed, i) - 0.5) * 8;
+    features.forEach(({ feature, weight }) => {
+      if(!feature) return;
+      const fx = feature.x - zone.x;
+      const fy = feature.y - zone.y;
+      if(!Number.isFinite(fx) || !Number.isFinite(fy)) return;
+      const featureAngle = Math.atan2(fy, fx);
+      let diff = angle - featureAngle;
+      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+      const angleInfluence = Math.cos(diff);
+      if(angleInfluence <= 0) return;
+      const dist = Math.hypot(fx, fy);
+      const span = Math.max(zone.width || 0, zone.height || 0, feature.width || 0, feature.height || 0, 1);
+      const distanceFactor = clampNumber(1 - (dist / (span * 1.1)), 0, 1);
+      const type = feature.type || 'hill';
+      const sign = (type === 'valley' || type === 'sink') ? -1 : (type === 'ridge' ? 0.8 : 1);
+      const intensity = Number.isFinite(feature.intensity) ? feature.intensity : 1;
+      const magnitude = (6 + (intensity - 1) * 8) * (Number.isFinite(weight) ? weight : 1);
+      const directional = angleInfluence ** 1.6;
+      radius += sign * directional * distanceFactor * magnitude;
+    });
+    radius = clampNumber(radius, minRadius, maxRadius);
+    const px = clampNumber(50 + Math.cos(angle) * radius, -5, 105);
+    const py = clampNumber(50 + Math.sin(angle) * radius * ratio, -5, 105);
+    points.push(`${px.toFixed(2)}% ${py.toFixed(2)}%`);
+  }
+  if(points.length < 3) return null;
+  return `polygon(${points.join(', ')})`;
+}
+
+function computeZoneOrientation(zone, features = resolveZoneFeatures(zone)){
+  if(!zone || !features.length) return null;
+  let sumX = 0;
+  let sumY = 0;
+  features.forEach(({ feature, weight }) => {
+    if(!feature) return;
+    const fx = feature.x - zone.x;
+    const fy = feature.y - zone.y;
+    if(!Number.isFinite(fx) || !Number.isFinite(fy) || (fx === 0 && fy === 0)) return;
+    const type = feature.type || 'hill';
+    const sign = (type === 'valley' || type === 'sink') ? -1 : (type === 'ridge' ? 0.6 : 1);
+    const influenceWeight = (Number.isFinite(weight) ? weight : 1) * sign;
+    sumX += fx * influenceWeight;
+    sumY += fy * influenceWeight;
+  });
+  if(sumX === 0 && sumY === 0) return null;
+  const angle = Math.atan2(sumY, sumX) * (180 / Math.PI);
+  return (angle + 360) % 360;
+}
+
 function renderMapZones(layer){
   if(!layer) return;
   layer.innerHTML = '';
@@ -1892,6 +2034,23 @@ function renderMapZones(layer){
     zoneEl.style.top = `${top}%`;
     zoneEl.style.width = `${size.width}%`;
     zoneEl.style.height = `${size.height}%`;
+    const zoneFeatures = resolveZoneFeatures(zone);
+    const clipPath = generateZoneClipPath(zone, zoneFeatures);
+    if(clipPath){
+      zoneEl.style.setProperty('--zone-clip', clipPath);
+      zoneEl.style.clipPath = clipPath;
+      zoneEl.style.webkitClipPath = clipPath;
+    } else {
+      zoneEl.style.removeProperty('--zone-clip');
+      zoneEl.style.removeProperty('clip-path');
+      zoneEl.style.removeProperty('-webkit-clip-path');
+    }
+    const orientation = computeZoneOrientation(zone, zoneFeatures);
+    if(Number.isFinite(orientation)){
+      zoneEl.style.setProperty('--zone-orientation', `${orientation.toFixed(1)}deg`);
+    } else {
+      zoneEl.style.removeProperty('--zone-orientation');
+    }
     zoneEl.dataset.zoneName = zone.name;
     const label = document.createElement('div');
     label.className = 'map-zone-label';
@@ -1999,6 +2158,66 @@ function renderMapZoneDetail(){
       list.appendChild(item);
     });
     detail.appendChild(list);
+  }
+}
+
+function renderMapEventLegend(){
+  const container = document.getElementById('map-event-key');
+  if(!container) return;
+  container.innerHTML = '';
+  const heading = document.createElement('h3');
+  heading.textContent = 'Random Event Key';
+  container.appendChild(heading);
+  const list = document.createElement('ul');
+  list.className = 'map-event-key-list';
+  const seen = new Set();
+  SCENE_EVENTS.forEach(event => {
+    if(!event) return;
+    const glyph = Array.isArray(event.glyph)
+      ? event.glyph.join('\n')
+      : (event.glyph || '[]');
+    const key = event.id || glyph;
+    if(seen.has(key)) return;
+    seen.add(key);
+    const item = document.createElement('li');
+    const typeClass = event.type
+      ? `type-${String(event.type).toLowerCase().replace(/[^a-z0-9-]/g, '-')}`
+      : 'type-generic';
+    item.classList.add(typeClass);
+    const art = document.createElement('pre');
+    art.textContent = glyph;
+    item.appendChild(art);
+    const labels = document.createElement('div');
+    labels.className = 'map-event-key-labels';
+    const header = document.createElement('div');
+    header.className = 'map-event-key-header';
+    const name = document.createElement('strong');
+    name.textContent = event.title || 'Event anomaly';
+    header.appendChild(name);
+    if(event.type){
+      const badge = document.createElement('span');
+      badge.className = 'map-event-key-type';
+      badge.textContent = String(event.type).replace(/[-_]/g, ' ');
+      header.appendChild(badge);
+    }
+    labels.appendChild(header);
+    const description = event.mapLabel || event.summary || '';
+    if(description){
+      const desc = document.createElement('span');
+      desc.className = 'map-event-key-description';
+      desc.textContent = description;
+      labels.appendChild(desc);
+    }
+    item.appendChild(labels);
+    list.appendChild(item);
+  });
+  if(list.children.length){
+    container.appendChild(list);
+  } else {
+    const placeholder = document.createElement('p');
+    placeholder.className = 'map-event-key-placeholder small muted';
+    placeholder.textContent = 'No random events catalogued.';
+    container.appendChild(placeholder);
   }
 }
 
@@ -2663,6 +2882,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelector('#q').addEventListener('input', (e)=>{ state.q = e.target.value; applyFilters(); });
   document.querySelector('#close').addEventListener('click', closeModal);
   document.querySelector('#modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal(); });
+  renderMapEventLegend();
   main();
 });
 
