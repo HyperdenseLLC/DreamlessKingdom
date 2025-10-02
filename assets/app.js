@@ -2010,6 +2010,52 @@ function computeZoneOrientation(zone, features = resolveZoneFeatures(zone)){
   return (angle + 360) % 360;
 }
 
+function generateZoneAsciiArt(zone, orientation){
+  const width = Number.isFinite(zone?.width) ? zone.width : 36;
+  const height = Number.isFinite(zone?.height) ? zone.height : width;
+  const innerWidth = clampNumber(Math.round(width / 2.8), 8, 18);
+  const innerHeight = clampNumber(Math.round(height / 4.2), 4, 9);
+  const normalizedOrientation = Number.isFinite(orientation)
+    ? Math.abs(orientation % 180)
+    : null;
+  const orientationPatterns = [
+    { limit: 22.5, pattern: '==' },
+    { limit: 52.5, pattern: '/\\' },
+    { limit: 82.5, pattern: '\\' },
+    { limit: 112.5, pattern: '||' },
+    { limit: 142.5, pattern: '\\/' },
+    { limit: 180, pattern: '..' },
+  ];
+  let fillPattern = '..';
+  if(normalizedOrientation !== null){
+    for(const option of orientationPatterns){
+      if(normalizedOrientation <= option.limit){
+        fillPattern = option.pattern;
+        break;
+      }
+    }
+  }
+  const seed = computeZoneSeedValue(zone);
+  const fillVariations = ['..', '--', '::', '~~', '<>', '**'];
+  if(fillPattern === '..'){
+    const variantIndex = Math.floor((Math.abs(seed) * 37) % fillVariations.length);
+    fillPattern = fillVariations[variantIndex] || '..';
+  }
+  const rows = [];
+  const horizontal = '='.repeat(innerWidth);
+  rows.push(`+${horizontal}+`);
+  for(let y = 0; y < innerHeight; y += 1){
+    let fill = '';
+    for(let x = 0; x < innerWidth; x += 1){
+      const index = (x + y) % fillPattern.length;
+      fill += fillPattern[index];
+    }
+    rows.push(`|${fill.slice(0, innerWidth)}|`);
+  }
+  rows.push(`+${horizontal}+`);
+  return rows.join('\n');
+}
+
 function renderMapZones(layer){
   if(!layer) return;
   layer.innerHTML = '';
@@ -2051,6 +2097,11 @@ function renderMapZones(layer){
     } else {
       zoneEl.style.removeProperty('--zone-orientation');
     }
+    const ascii = document.createElement('pre');
+    ascii.className = 'map-zone-ascii';
+    ascii.setAttribute('aria-hidden', 'true');
+    ascii.textContent = generateZoneAsciiArt(zone, orientation);
+    zoneEl.appendChild(ascii);
     zoneEl.dataset.zoneName = zone.name;
     const label = document.createElement('div');
     label.className = 'map-zone-label';
