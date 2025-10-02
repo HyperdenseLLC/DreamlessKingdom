@@ -725,12 +725,12 @@ button:hover, .badge:hover {
   color: var(--muted);
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
   z-index: 8;
-  min-width: clamp(82px, 11vw, 160px);
+  min-width: clamp(74px, 10vw, 150px);
   pointer-events: auto;
   cursor: pointer;
   display: inline-flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   align-items: center;
   justify-content: center;
   text-decoration: none;
@@ -759,7 +759,7 @@ button:hover, .badge:hover {
 .map-zone-label span {
   display: block;
   margin-top: 2px;
-  font-size: clamp(0.42rem, 0.7vw, 0.55rem);
+  font-size: clamp(0.4rem, 0.65vw, 0.52rem);
   letter-spacing: 0.04em;
   text-transform: none;
   color: rgba(220, 214, 245, 0.6);
@@ -833,10 +833,32 @@ button:hover, .badge:hover {
   color: rgba(220, 214, 245, 0.86);
 }
 
+.map-zone-region-list {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: clamp(0.48rem, 0.8vw, 0.62rem);
+  color: rgba(220, 214, 245, 0.72);
+}
+
+.map-zone-region-list li {
+  position: relative;
+  padding-left: 12px;
+}
+
+.map-zone-region-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: rgba(212, 175, 55, 0.65);
+}
+
 .marker {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: clamp(3px, 0.48vw, 7px);
+  width: clamp(2px, 0.42vw, 6px);
   aspect-ratio: 1;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.82);
@@ -851,8 +873,8 @@ button:hover, .badge:hover {
 
 .marker span {
   position: absolute;
-  width: 42%;
-  height: 42%;
+  width: 48%;
+  height: 48%;
   border-radius: 50%;
   background: rgba(18, 22, 43, 0.9);
 }
