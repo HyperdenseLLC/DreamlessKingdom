@@ -16,6 +16,7 @@ const state = {
   zoneToastTimer: null,
   crossReferences: null,
   entryNpcLinks: new Map(),
+  buildings: [],
 };
 
 const LABEL_PLACEMENTS = new Map();
@@ -509,6 +510,7 @@ const NPCS = [
     name: 'Archivist Sel',
     title: 'Archivist of Whispered Threads',
     description: 'Keeps the Choir\'s last resonant ledgers and trades in memories etched onto light.',
+    buildingId: 'choir-reliquary',
     location: { x: 26, y: 26, region: 'Choir Ruins' },
     dialogues: [
       {
@@ -546,6 +548,7 @@ const NPCS = [
     name: 'Skywright Ila',
     title: 'Cartographer of Stormlines',
     description: 'Charts auroral slipstreams threading the Skybreak parapets.',
+    buildingId: 'skywright-atelier',
     location: { x: 18, y: 14, region: 'Skybreak Ridge' },
     dialogues: [
       {
@@ -583,6 +586,7 @@ const NPCS = [
     name: 'Quartermaster Jansa',
     title: 'Carnival Quartermaster',
     description: 'Directs festival caravans and keeps the ember routes aglow.',
+    buildingId: 'emberworks-depot',
     location: { x: 58, y: 74, region: 'Carnival Quarter Greenways' },
     dialogues: [
       {
@@ -620,6 +624,7 @@ const NPCS = [
     name: 'Warden Celyne',
     title: 'Tideglass Warden',
     description: 'Monitors the undersea currents that lap at the kingdom\'s deepest vaults.',
+    buildingId: 'tideglass-laboratory',
     location: { x: 84, y: 46, region: 'Undersea Observatory' },
     dialogues: [
       {
@@ -657,6 +662,7 @@ const NPCS = [
     name: 'Gardener Thalen',
     title: 'Whispering Arboretum Tender',
     description: 'Cultivates groves that respond to spoken promises.',
+    buildingId: 'arboretum-hearth',
     location: { x: 32, y: 64, region: 'Whispering Arboretum' },
     dialogues: [
       {
@@ -694,6 +700,7 @@ const NPCS = [
     name: 'Liaison Brakk',
     title: 'Shatterlight Forge Envoy',
     description: 'Keeps the forge embers synchronized with the Radiant Courts.',
+    buildingId: 'forge-accord-hall',
     location: { x: 66, y: 44, region: 'Shatterlight Forge' },
     dialogues: [
       {
@@ -1613,6 +1620,63 @@ const NPCS = [
   }
 ];
 
+const BUILDINGS = [
+  {
+    id: 'choir-reliquary',
+    name: 'Choir Reliquary',
+    role: 'Resonant Vault',
+    description: 'Vaulted sanctum where echo glass preserves the Choir\'s final refrains.',
+    location: { x: 27, y: 25, region: 'Choir Ruins' },
+    npcIds: ['archivist-sel'],
+    wanderRadius: 4.5,
+  },
+  {
+    id: 'skywright-atelier',
+    name: 'Skywright Atelier',
+    role: 'Stormline Hangar',
+    description: 'Cantilevered workshop that anchors the stormline charts above Skybreak Ridge.',
+    location: { x: 19, y: 13, region: 'Skybreak Ridge' },
+    npcIds: ['skywright-ila'],
+    wanderRadius: 4.2,
+  },
+  {
+    id: 'emberworks-depot',
+    name: 'Emberworks Depot',
+    role: 'Carnival Ember Storehouse',
+    description: 'Depot where parade engineers braid emberleaf coils before each procession.',
+    location: { x: 56, y: 70, region: 'Carnival Quarter Greenways' },
+    npcIds: ['carnival-quartermaster'],
+    wanderRadius: 5,
+  },
+  {
+    id: 'tideglass-laboratory',
+    name: 'Tideglass Laboratory',
+    role: 'Undersea Current Observatory',
+    description: 'Flood-sealed laboratory that listens to the undersea resonance beneath the observatory.',
+    location: { x: 78, y: 42, region: 'Undersea Observatory' },
+    npcIds: ['tideglass-warden'],
+    wanderRadius: 4.8,
+  },
+  {
+    id: 'arboretum-hearth',
+    name: 'Arboretum Hearth',
+    role: 'Whispering Grove Sanctuary',
+    description: 'Sheltered hearth where the arboretum\'s tenders trade lullabies with rooted spirits.',
+    location: { x: 32, y: 63, region: 'Whispering Arboretum' },
+    npcIds: ['hollow-gardener'],
+    wanderRadius: 5.2,
+  },
+  {
+    id: 'forge-accord-hall',
+    name: 'Forge Accord Hall',
+    role: 'Shatterlight Diplomatic Suite',
+    description: 'Meeting hall suspended above the Shatterlight crucibles where emissaries broker truces.',
+    location: { x: 67, y: 44, region: 'Shatterlight Forge' },
+    npcIds: ['forge-liaison'],
+    wanderRadius: 4.6,
+  },
+];
+
 const RARITY_TABLE = [
   {
     key: 'common',
@@ -2341,6 +2405,16 @@ function pickOneSeeded(list, seed, offset = 0){
   return list[(index + list.length) % list.length];
 }
 
+function formatList(list){
+  const values = Array.isArray(list) ? list.filter(Boolean) : [];
+  if(!values.length) return '';
+  if(values.length === 1) return values[0];
+  if(values.length === 2) return `${values[0]} and ${values[1]}`;
+  const head = values.slice(0, -1).join(', ');
+  const tail = values[values.length - 1];
+  return `${head}, and ${tail}`;
+}
+
 function formatMoodLine(template, context = {}){
   if(!template) return '';
   return template
@@ -2371,6 +2445,8 @@ function ensureMapStructure(){
   pathSvg.appendChild(pathLine);
   const zonesLayer = document.createElement('div');
   zonesLayer.className = 'map-layer map-layer-zones';
+  const buildingsLayer = document.createElement('div');
+  buildingsLayer.className = 'map-layer map-layer-buildings';
   const markersLayer = document.createElement('div');
   markersLayer.className = 'map-layer map-layer-markers';
   const eventsLayer = document.createElement('div');
@@ -2379,7 +2455,7 @@ function ensureMapStructure(){
   npcLayer.className = 'map-layer map-layer-npcs';
   const actorsLayer = document.createElement('div');
   actorsLayer.className = 'map-layer map-layer-actors';
-  world.append(pathSvg, zonesLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
+  world.append(pathSvg, zonesLayer, buildingsLayer, markersLayer, eventsLayer, npcLayer, actorsLayer);
   map.appendChild(viewport);
   const detail = document.createElement('div');
   detail.id = 'map-zone-detail';
@@ -2400,6 +2476,7 @@ function ensureMapStructure(){
     world,
     path: { svg: pathSvg, line: pathLine },
     zones: zonesLayer,
+    buildings: buildingsLayer,
     markers: markersLayer,
     events: eventsLayer,
     npcs: npcLayer,
@@ -2826,8 +2903,12 @@ function renderMapMarkers(){
   if(!map) return;
   const layers = ensureMapStructure();
   if(!layers) return;
-  const { zones, markers, npcs, events } = layers;
+  const { zones, buildings, markers, npcs, events } = layers;
   renderMapZones(zones);
+  if(Array.isArray(state.buildings)){
+    state.buildings.forEach(building => { if(building) building.element = null; });
+  }
+  renderMapBuildings(buildings);
   markers.innerHTML = '';
   if(npcs) npcs.innerHTML = '';
   state.npcs.forEach(npc => { if(npc) npc.element = null; });
@@ -2887,6 +2968,62 @@ function renderMapMarkers(){
   }
   updateExplorerTrail();
   requestAnimationFrame(resolveMapLabelCollisions);
+}
+
+function getBuildingGlyph(building){
+  if(building?.glyph) return building.glyph;
+  const words = (building?.name || '').split(/[^A-Za-z0-9]+/).filter(Boolean);
+  if(!words.length) return 'B';
+  const initials = words.slice(0, 2).map(word => word[0]);
+  const glyph = initials.join('').slice(0, 2).toUpperCase();
+  return glyph || (words[0][0] || 'B').toUpperCase();
+}
+
+function renderMapBuildings(layer){
+  if(!layer) return;
+  layer.innerHTML = '';
+  const buildings = Array.isArray(state.buildings) ? state.buildings : [];
+  const frag = document.createDocumentFragment();
+  buildings.forEach(building => {
+    if(!building?.location) return;
+    const { x, y } = building.location;
+    if(!Number.isFinite(x) || !Number.isFinite(y)) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    const classes = ['marker', 'building'];
+    button.className = classes.join(' ');
+    const pos = projectIsoPoint(x, y);
+    button.style.left = `${pos.left}%`;
+    button.style.top = `${pos.top}%`;
+    button.dataset.buildingId = building.id || '';
+    const glyph = document.createElement('span');
+    glyph.className = 'marker-glyph';
+    glyph.textContent = getBuildingGlyph(building);
+    button.appendChild(glyph);
+    const role = building.role || building.description || '';
+    const region = building.location?.region || '';
+    const occupantIds = Array.isArray(building.npcIds) ? building.npcIds : [];
+    const occupantNames = Array.isArray(state.npcs)
+      ? state.npcs
+        .filter(npc => occupantIds.includes(npc.id) || npc.buildingId === building.id)
+        .map(npc => npc.name)
+        .filter(Boolean)
+      : [];
+    const detailParts = [role, region];
+    if(occupantNames.length){
+      detailParts.push(`Contacts: ${formatList(occupantNames)}`);
+    }
+    const detailLabel = detailParts.filter(Boolean).join(' — ');
+    button.setAttribute('aria-label', detailLabel ? `${building.name} — ${detailLabel}` : building.name);
+    button.title = detailLabel ? `${building.name}\n${detailLabel}` : building.name;
+    const handleSpotlight = (hover = false) => spotlightBuilding(building, { hover });
+    button.addEventListener('click', () => spotlightBuilding(building));
+    button.addEventListener('focus', () => handleSpotlight(true));
+    button.addEventListener('mouseenter', () => handleSpotlight(true));
+    frag.appendChild(button);
+    building.element = button;
+  });
+  layer.appendChild(frag);
 }
 
 function spawnMapEvent(event, options = {}){
@@ -3026,6 +3163,7 @@ function resolveMapLabelCollisions(){
   const zones = Array.from(layers.zones?.querySelectorAll('.map-zone') || []);
   if(!zones.length) return;
   const markerNodes = [
+    ...(layers.buildings ? Array.from(layers.buildings.querySelectorAll('.marker')) : []),
     ...(layers.markers ? Array.from(layers.markers.querySelectorAll('.marker')) : []),
     ...(layers.npcs ? Array.from(layers.npcs.querySelectorAll('.marker')) : []),
   ];
@@ -3184,6 +3322,7 @@ function renderNpcDirectory(){
     card.setAttribute('tabindex', '0');
     const labelParts = [npc.name];
     if(npc.title) labelParts.push(npc.title);
+    if(npc.buildingName) labelParts.push(`Often at ${npc.buildingName}`);
     card.setAttribute('aria-label', labelParts.join(' — '));
 
     const header = document.createElement('div');
@@ -3211,6 +3350,12 @@ function renderNpcDirectory(){
       region.className = 'npc-region';
       region.textContent = `Stationed at ${npc.location.region}`;
       metaWrap.appendChild(region);
+    }
+    if(npc.buildingName){
+      const buildingTag = document.createElement('span');
+      buildingTag.className = 'npc-building';
+      buildingTag.textContent = `Lingers near ${npc.buildingName}`;
+      metaWrap.appendChild(buildingTag);
     }
 
     const dialogues = Array.isArray(npc.dialogues) ? npc.dialogues : [];
@@ -3376,6 +3521,7 @@ function openNpcModal(npc){
       <p class="small">${npc.title || ''}</p>
       ${npc.description ? `<p class="muted">${npc.description}</p>` : ''}
       ${npc.location?.region ? `<p class="small muted">Stationed at ${npc.location.region}</p>` : ''}
+      ${npc.buildingName ? `<p class="small muted">Often found near the ${npc.buildingName}</p>` : ''}
     </div>
     <hr/>
     <h3>Conversation Threads</h3>
@@ -3411,16 +3557,41 @@ async function main(){
   const res = await fetch('data/entries.json');
   const j = await res.json();
   state.entries = j.entries;
+  state.buildings = BUILDINGS.map(building => ({
+    ...building,
+    location: building.location ? { ...building.location } : null,
+    element: null,
+  }));
+  const buildingIndex = new Map(state.buildings.map(building => [building.id, building]));
   state.npcs = NPCS.map(npc => {
-    const location = npc.location ? { ...npc.location } : null;
+    const assignedBuilding = npc.buildingId ? buildingIndex.get(npc.buildingId) : null;
+    const buildingLocation = assignedBuilding?.location;
+    const sourceLocation = buildingLocation || npc.location || null;
+    const region = sourceLocation?.region || npc.location?.region || null;
+    const hasBuilding = !!assignedBuilding && !!buildingLocation;
+    const scatterRadius = hasBuilding ? Math.max(1.8, (assignedBuilding.wanderRadius || 4.5) * 0.45) : 0;
+    const startPoint = sourceLocation
+      ? scatterCoordinate(sourceLocation, scatterRadius)
+      : { x: 50, y: 50 };
+    const location = sourceLocation
+      ? { x: startPoint.x, y: startPoint.y, region }
+      : null;
+    const home = buildingLocation
+      ? { x: buildingLocation.x, y: buildingLocation.y }
+      : (location ? { x: location.x, y: location.y } : null);
+    const baseRadius = hasBuilding
+      ? clampNumber((assignedBuilding.wanderRadius || 5) * (0.85 + Math.random() * 0.35), 3, 12)
+      : 6 + Math.random() * 6;
     return {
       ...npc,
       location,
-      home: location ? { x: location.x, y: location.y } : null,
-      wanderTarget: location ? { x: location.x, y: location.y } : null,
+      buildingId: assignedBuilding?.id || npc.buildingId || null,
+      buildingName: assignedBuilding?.name || null,
+      home,
+      wanderTarget: home ? { ...home } : null,
       wanderPause: Math.random() * 5,
-      wanderSpeed: 0.35 + Math.random() * 0.4,
-      wanderRadius: 6 + Math.random() * 6,
+      wanderSpeed: 0.32 + Math.random() * 0.45,
+      wanderRadius: baseRadius,
       element: null,
     };
   });
@@ -3671,7 +3842,7 @@ function hashString(str){
   return Array.from(str || '').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 }
 
-function announceZoneArrival(zone){
+function showMapToast(content, key = '', duration = 4500){
   const layers = ensureMapStructure();
   if(!layers?.arrival) return;
   const el = layers.arrival;
@@ -3679,23 +3850,55 @@ function announceZoneArrival(zone){
     clearTimeout(state.zoneToastTimer);
     state.zoneToastTimer = null;
   }
-  if(!zone){
+  if(!content){
     el.classList.remove('visible');
     el.innerHTML = '';
     el.dataset.zone = '';
+    el.dataset.context = '';
+    return;
+  }
+  el.innerHTML = content;
+  el.dataset.zone = key || '';
+  el.dataset.context = key || '';
+  el.classList.add('visible');
+  if(Number.isFinite(duration) && duration > 0){
+    state.zoneToastTimer = setTimeout(() => {
+      el.classList.remove('visible');
+      state.zoneToastTimer = null;
+    }, duration);
+  }
+}
+
+function spotlightBuilding(building, options = {}){
+  if(!building) return;
+  const occupantIds = Array.isArray(building.npcIds) ? building.npcIds : [];
+  const occupants = Array.isArray(state.npcs)
+    ? state.npcs.filter(npc => occupantIds.includes(npc.id) || npc.buildingId === building.id)
+    : [];
+  const names = occupants.map(npc => npc.name).filter(Boolean);
+  const subtitleFragments = [];
+  if(building.role) subtitleFragments.push(building.role);
+  if(names.length) subtitleFragments.push(`Frequented by ${formatList(names)}`);
+  else if(building.location?.region) subtitleFragments.push(building.location.region);
+  const content = `
+    <strong>${building.name}</strong>
+    ${subtitleFragments.length ? `<span>${subtitleFragments.join(' • ')}</span>` : ''}
+  `;
+  const duration = options.hover ? 3200 : 5200;
+  showMapToast(content, `building:${building.id}`, duration);
+}
+
+function announceZoneArrival(zone){
+  if(!zone){
+    showMapToast('', '');
     return;
   }
   const subtitle = zone.subtitle || (Array.isArray(zone.regions) ? zone.regions.join(' • ') : '');
-  el.innerHTML = `
+  const content = `
     <strong>${zone.name}</strong>
     ${subtitle ? `<span>${subtitle}</span>` : ''}
   `;
-  el.dataset.zone = zone.name;
-  el.classList.add('visible');
-  state.zoneToastTimer = setTimeout(() => {
-    el.classList.remove('visible');
-    state.zoneToastTimer = null;
-  }, 4500);
+  showMapToast(content, `zone:${zone.name}`);
 }
 
 function renderMapTelemetry(){
