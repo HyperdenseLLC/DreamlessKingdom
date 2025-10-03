@@ -14,6 +14,8 @@ const state = {
   activeEvents: [],
   bloomDormant: new Map(),
   zoneToastTimer: null,
+  crossReferences: null,
+  entryNpcLinks: new Map(),
 };
 
 const LABEL_PLACEMENTS = new Map();
@@ -1861,6 +1863,401 @@ function renderVariantCycle(){
   `;
 }
 
+function joinByBullet(...parts){
+  return parts
+    .flatMap(part => Array.isArray(part) ? part : [part])
+    .map(part => (part ?? '').toString().trim())
+    .filter(Boolean)
+    .join(' • ');
+}
+
+function capitalize(word){
+  if(!word) return '';
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function buildCrossReferenceIndex(entries){
+  if(!Array.isArray(entries) || !entries.length) return null;
+  const entriesById = new Map(entries.map(entry => [entry.id, entry]));
+  const groups = {
+    tag: new Map(),
+    category: new Map(),
+    region: new Map(),
+    rarity: new Map(),
+    mutation: new Map(),
+    condition: new Map(),
+    quirk: new Map(),
+    cycle: new Map(),
+    mood: new Map(),
+  };
+  const add = (map, key, id) => {
+    if(!map || !key) return;
+    const value = typeof key === 'string' ? key.trim() : key;
+    if(!value) return;
+    const list = map.get(value) || [];
+    if(!list.includes(id)){
+      list.push(id);
+      map.set(value, list);
+    }
+  };
+
+  entries.forEach(entry => {
+    add(groups.tag, entry.tag, entry.id);
+    add(groups.category, entry.category, entry.id);
+    add(groups.region, entry.location?.region, entry.id);
+    const variant = entry.variant || {};
+    add(groups.rarity, variant.rarityKey || variant.rarity, entry.id);
+    add(groups.mutation, variant.mutation, entry.id);
+    add(groups.condition, variant.condition, entry.id);
+    add(groups.quirk, variant.quirk, entry.id);
+    add(groups.cycle, variant.cycleKey || variant.cycleLabel, entry.id);
+    add(groups.mood, ENTRY_MOOD_TAGS[entry.id], entry.id);
+  });
+
+  const eventsByMood = new Map();
+  SCENE_EVENTS.forEach(event => {
+    if(!event?.moodTag) return;
+    const list = eventsByMood.get(event.moodTag) || [];
+    list.push(event);
+    eventsByMood.set(event.moodTag, list);
+  });
+
+  return { entriesById, groups, eventsByMood };
+}
+
+function getCrossReferencePeers(index, groupKey, value, entryId){
+  if(!index?.groups || !groupKey || !value) return [];
+  const map = index.groups[groupKey];
+  if(!map) return [];
+  const key = typeof value === 'string' ? value.trim() : value;
+  if(!key) return [];
+  const ids = map.get(key) || [];
+  return ids
+    .filter(id => id !== entryId)
+    .map(id => index.entriesById.get(id))
+    .filter(Boolean);
+}
+
+function buildEntryConnectionSeed(entry){
+  const cycleSeed = state.variantCycle?.seed || 'cycle';
+  const ambientKey = Array.isArray(state.activeEvents) && state.activeEvents.length
+    ? state.activeEvents.map(event => event.id).sort().join('|')
+    : 'calm';
+  const tagKey = entry?.tag || 'untagged';
+  return `${cycleSeed}|${ambientKey}|${tagKey}`;
+}
+
+function selectConnectionSubset(peers, entry, contextSeed, limit, subtitleFn){
+  if(!Array.isArray(peers) || !peers.length) return [];
+  const scored = peers.map(other => {
+    const score = hashString(`${entry.id}|${other.id}|${contextSeed}`);
+    return { other, score };
+  }).sort((a, b) => a.score - b.score);
+
+  return scored.slice(0, limit).map(({ other }) => {
+    const subtitle = typeof subtitleFn === 'function' ? subtitleFn(other) : subtitleFn;
+    return {
+      kind: 'entry',
+      id: other.id,
+      title: other.title,
+      subtitle: subtitle || '',
+    };
+  });
+}
+
+function buildVariantConnections(entry, index, contextSeed){
+  const variant = entry?.variant;
+  if(!variant) return [];
+  const descriptors = [];
+  if(variant.rarity){
+    descriptors.push({ key: 'rarity', value: variant.rarityKey || variant.rarity, label: `Rarity — ${variant.rarity}`, weight: 2 });
+  }
+  if(variant.condition){
+    descriptors.push({ key: 'condition', value: variant.condition, label: `Condition — ${variant.condition}`, weight: 3 });
+  }
+  if(variant.mutation){
+    descriptors.push({ key: 'mutation', value: variant.mutation, label: `Mutation — ${variant.mutation}`, weight: 3 });
+  }
+  if(variant.quirk){
+    descriptors.push({ key: 'quirk', value: variant.quirk, label: `Quirk — ${variant.quirk}`, weight: 2 });
+  }
+  if(variant.cycleKey || variant.cycleLabel){
+    const cycleLabel = variant.cycleLabel || state.variantCycle?.label || 'Current cycle';
+    descriptors.push({ key: 'cycle', value: variant.cycleKey || variant.cycleLabel, label: `Cycle resonance — ${cycleLabel}`, weight: 1 });
+  }
+  if(!descriptors.length) return [];
+
+  const combined = new Map();
+  descriptors.forEach(descriptor => {
+    const peers = getCrossReferencePeers(index, descriptor.key, descriptor.value, entry.id);
+    peers.forEach(other => {
+      const key = other.id;
+      if(!combined.has(key)){
+        combined.set(key, { entry: other, reasons: new Set(), weight: 0 });
+      }
+      const record = combined.get(key);
+      if(descriptor.label){
+        record.reasons.add(descriptor.label);
+      }
+      record.weight += descriptor.weight;
+    });
+  });
+
+  const items = Array.from(combined.values());
+  if(!items.length) return [];
+
+  items.sort((a, b) => {
+    if(b.weight !== a.weight) return b.weight - a.weight;
+    const scoreA = hashString(`${entry.id}|${a.entry.id}|${contextSeed}`);
+    const scoreB = hashString(`${entry.id}|${b.entry.id}|${contextSeed}`);
+    return scoreA - scoreB;
+  });
+
+  return items.slice(0, 4).map(item => ({
+    kind: 'entry',
+    id: item.entry.id,
+    title: item.entry.title,
+    subtitle: Array.from(item.reasons).join(' • '),
+  }));
+}
+
+function buildNpcConnections(entry, contextSeed){
+  const links = state.entryNpcLinks instanceof Map ? state.entryNpcLinks.get(entry.id) : null;
+  if(!links?.length) return [];
+  const scored = links.map(link => {
+    const score = hashString(`${entry.id}|${link.npcId}|${contextSeed}`);
+    return { link, score };
+  }).sort((a, b) => a.score - b.score);
+
+  return scored.slice(0, 4).map(({ link }) => ({
+    kind: 'npc',
+    id: link.npcId,
+    title: link.npcName,
+    subtitle: link.dialogueTitle || 'Dialogue unlocked',
+    note: link.npcRegion || '',
+  }));
+}
+
+function buildAmbientConnections(entry, index, contextSeed){
+  if(!index) return [];
+  const items = new Map();
+  const addEvent = (event, reason) => {
+    if(!event) return;
+    const existing = items.get(event.id);
+    if(existing){
+      if(reason){
+        const parts = new Set(existing.note ? existing.note.split(' • ') : []);
+        parts.add(reason);
+        existing.note = Array.from(parts).join(' • ');
+      }
+      return;
+    }
+    const active = Array.isArray(state.activeEvents) && state.activeEvents.some(activeEvent => activeEvent.id === event.id);
+    items.set(event.id, {
+      kind: 'event',
+      id: event.id,
+      title: event.title,
+      subtitle: event.summary || '',
+      note: reason || '',
+      active,
+    });
+  };
+
+  const mood = ENTRY_MOOD_TAGS[entry.id];
+  if(mood){
+    const moodEvents = index.eventsByMood?.get(mood) || [];
+    const moodLabel = capitalize(mood);
+    moodEvents.forEach(event => addEvent(event, `Mood resonance — ${moodLabel}`));
+  }
+
+  SCENE_EVENTS.forEach(event => {
+    if(event.redirectType === 'entry'){
+      if(!event.redirectCategory || event.redirectCategory === entry.category){
+        const reason = event.redirectCategory ? `Redirect trigger — ${event.redirectCategory}` : 'Redirect trigger';
+        addEvent(event, reason);
+      }
+    }
+    if(event.redirectType === 'npc'){
+      const npcLinks = state.entryNpcLinks instanceof Map ? state.entryNpcLinks.get(entry.id) : null;
+      if(npcLinks?.length){
+        addEvent(event, 'NPC exchanges influenced');
+      }
+    }
+    if(event.requiresShelter && entry.tag === 'Protective'){
+      addEvent(event, 'Protective tag mitigates shelterfront');
+    }
+    if(event.type === 'weather' && ['Navigation', 'Cartography'].includes(entry.tag)){
+      addEvent(event, 'Navigation tags reroute around weather');
+    }
+  });
+
+  let list = Array.from(items.values());
+  if(!list.length) return [];
+
+  list.sort((a, b) => {
+    if(a.active !== b.active){
+      return a.active ? -1 : 1;
+    }
+    const scoreA = hashString(`${entry.id}|${a.id}|${contextSeed}`);
+    const scoreB = hashString(`${entry.id}|${b.id}|${contextSeed}`);
+    return scoreA - scoreB;
+  });
+
+  return list.slice(0, 4);
+}
+
+function generateEntryConnections(entry){
+  const crossRef = state.crossReferences;
+  if(!crossRef || !entry) return [];
+  const sections = [];
+  const contextSeed = buildEntryConnectionSeed(entry);
+
+  if(entry.tag){
+    const tagPeers = getCrossReferencePeers(crossRef, 'tag', entry.tag, entry.id);
+    const tagItems = selectConnectionSubset(tagPeers, entry, contextSeed, 4, (other) => {
+      const variant = other.variant || {};
+      return joinByBullet(other.location?.region, variant.rarity, variant.condition);
+    });
+    if(tagItems.length){
+      sections.push({ title: 'Guild Tag Network', description: `Specimens flagged "${entry.tag}" respond to similar guild triggers.`, items: tagItems });
+    }
+  }
+
+  if(entry.location?.region){
+    const regionPeers = getCrossReferencePeers(crossRef, 'region', entry.location.region, entry.id);
+    const regionItems = selectConnectionSubset(regionPeers, entry, contextSeed, 3, (other) => {
+      const variant = other.variant || {};
+      return joinByBullet(other.tag, variant.mutation, variant.condition);
+    });
+    if(regionItems.length){
+      sections.push({ title: 'Regional Adjacency', description: `Habitats across ${entry.location.region} tend to cross-pollinate routes.`, items: regionItems });
+    }
+  }
+
+  const variantItems = buildVariantConnections(entry, crossRef, contextSeed);
+  if(variantItems.length){
+    sections.push({ title: 'Variant Resonance', description: 'Shared rarity, conditions, or quirks detected in the current cycle.', items: variantItems });
+  }
+
+  const npcItems = buildNpcConnections(entry, contextSeed);
+  if(npcItems.length){
+    sections.push({ title: 'NPC Exchanges', description: 'Contacts who react when this specimen is delivered.', items: npcItems });
+  }
+
+  const ambientItems = buildAmbientConnections(entry, crossRef, contextSeed);
+  if(ambientItems.length){
+    sections.push({ title: 'Ambient Alignments', description: 'Field events that amplify or reshape this specimen’s behaviour.', items: ambientItems });
+  }
+
+  return sections;
+}
+
+function renderEntryConnections(entry){
+  const sections = generateEntryConnections(entry);
+  if(!sections.length) return '';
+  const groupsHtml = sections.map(section => {
+    if(!section?.items?.length) return '';
+    const itemsHtml = section.items.map(item => {
+      if(item.kind === 'npc'){
+        return [
+          '<li class="connection-item npc">',
+          `<button type="button" class="relation-link" data-npc-id="${item.id}">${item.title}</button>`,
+          item.subtitle ? `<span class="connection-note">${item.subtitle}</span>` : '',
+          item.note ? `<span class="connection-meta">${item.note}</span>` : '',
+          '</li>',
+        ].join('');
+      }
+      if(item.kind === 'event'){
+        return [
+          `<li class="connection-item event${item.active ? ' active' : ''}">`,
+          `<span class="connection-label">${item.title}</span>`,
+          item.note ? `<span class="connection-meta">${item.note}</span>` : '',
+          item.subtitle ? `<span class="connection-note">${item.subtitle}</span>` : '',
+          '</li>',
+        ].join('');
+      }
+      return [
+        '<li class="connection-item">',
+        `<button type="button" class="relation-link" data-entry-id="${item.id}">${item.title}</button>`,
+        item.subtitle ? `<span class="connection-note">${item.subtitle}</span>` : '',
+        '</li>',
+      ].join('');
+    }).join('');
+
+    return [
+      '<article class="connection-group">',
+      '<header>',
+      `<h4>${section.title}</h4>`,
+      section.description ? `<p class="connection-description small muted">${section.description}</p>` : '',
+      '</header>',
+      `<ul class="connection-list">${itemsHtml}</ul>`,
+      '</article>',
+    ].join('');
+  }).filter(Boolean).join('');
+
+  if(!groupsHtml) return '';
+  return `
+    <section class="entry-connections">
+      <h3>Field Linkages</h3>
+      ${groupsHtml}
+    </section>
+  `;
+}
+
+function setupEntryConnectionHandlers(container){
+  if(!container) return;
+  const entryLinks = Array.from(container.querySelectorAll('.relation-link[data-entry-id]') || []);
+  entryLinks.forEach(link => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const id = link.getAttribute('data-entry-id');
+      if(!id) return;
+      const target = state.entries.find(item => item.id === id);
+      if(target){
+        openModal(target);
+      }
+    });
+  });
+
+  const npcLinks = Array.from(container.querySelectorAll('.relation-link[data-npc-id]') || []);
+  npcLinks.forEach(link => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const id = link.getAttribute('data-npc-id');
+      if(!id) return;
+      const npc = state.npcs.find(contact => contact.id === id);
+      if(npc){
+        openNpcModal(npc);
+      }
+    });
+  });
+}
+
+function buildEntryNpcLinks(npcs){
+  const map = new Map();
+  if(!Array.isArray(npcs) || !npcs.length) return map;
+  npcs.forEach(npc => {
+    const dialogues = Array.isArray(npc.dialogues) ? npc.dialogues : [];
+    dialogues.forEach(dialogue => {
+      const requires = Array.isArray(dialogue.requires) ? dialogue.requires : [];
+      requires.forEach(id => {
+        if(!id) return;
+        if(!map.has(id)){
+          map.set(id, []);
+        }
+        map.get(id).push({
+          npcId: npc.id,
+          npcName: npc.name,
+          npcRegion: npc.location?.region || '',
+          dialogueId: dialogue.id,
+          dialogueTitle: dialogue.title,
+        });
+      });
+    });
+  });
+  return map;
+}
+
 function applyLandscapeSpread(value){
   if(value == null) return 50;
   const offset = value - 50;
@@ -2891,6 +3288,7 @@ function openModal(e){
   const variant = e.variant;
   const variantSummary = variant?.description;
   const cycleLabel = state.variantCycle?.label;
+  const connectionsHtml = renderEntryConnections(e);
   body.innerHTML = `
     <div class="kv">
       <div>World</div><div>Dreamless Kingdom</div>
@@ -2910,9 +3308,11 @@ function openModal(e){
     ${variantSummary ? `<div class="variant-callout"><h4>Variant Notes</h4><p>${variantSummary}</p></div>` : ''}
     <h3>Adventure Hooks</h3>
     <ul>${hooks.map(h=>`<li>${h}</li>`).join('')}</ul>
+    ${connectionsHtml ? `<hr/>${connectionsHtml}` : ''}
     <hr/>
     <div class="small">Deep link: <a href="#/item/${e.id}">#/item/${e.id}</a></div>
   `;
+  setupEntryConnectionHandlers(body);
   modal.classList.add('open');
   location.hash = `#/item/${e.id}`;
 }
@@ -3024,7 +3424,9 @@ async function main(){
       element: null,
     };
   });
+  state.entryNpcLinks = buildEntryNpcLinks(state.npcs);
   state.variantCycle = applyVariantProfiles(state.entries);
+  state.crossReferences = buildCrossReferenceIndex(state.entries);
   state.tags = new Set(state.entries.map(e=>e.tag));
   renderVariantCycle();
   renderTags();
