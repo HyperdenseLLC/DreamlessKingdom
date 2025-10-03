@@ -71,6 +71,7 @@ function renderMapMarkers(){
   map.innerHTML = '';
   const filteredIds = new Set(state.filtered.map(e=>e.id));
   state.entries.filter(e=>e.location).forEach(e=>{
+    if(e.buildingId) return;
     const marker = document.createElement('button');
     marker.className = 'marker' + (filteredIds.has(e.id) ? '' : ' dim');
     marker.style.left = `${e.location.x}%`;

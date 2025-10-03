@@ -582,6 +582,10 @@ button:hover, .badge:hover {
   gap: 12px;
 }
 
+.telemetry-grid.interior {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
 .telemetry-pair {
   display: flex;
   justify-content: space-between;
@@ -633,6 +637,33 @@ button:hover, .badge:hover {
   will-change: transform;
 }
 
+.map--interior .map-viewport {
+  cursor: default;
+}
+
+.map--interior .map-world {
+  position: relative;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  padding: 4% 6%;
+}
+
+.map--interior .map-layer-buildings {
+  display: none;
+}
+
+.map--interior .map-layer-events {
+  display: none;
+}
+
+.map--interior .map-layer-markers,
+.map--interior .map-layer-npcs {
+  pointer-events: auto;
+}
+
 .map-world.no-transition {
   transition: none !important;
 }
@@ -656,6 +687,23 @@ button:hover, .badge:hover {
 
 .map-layer-buildings .marker {
   pointer-events: auto;
+}
+
+.map-layer-buildings .marker.active {
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.55);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.map-layer-buildings .marker.has-targets::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.6);
 }
 
 .map-layer-markers {
@@ -760,6 +808,123 @@ button:hover, .badge:hover {
 
 .map-layer-npcs .marker {
   pointer-events: auto;
+}
+
+.interior-layout {
+  position: absolute;
+  inset: 0;
+  border-radius: 32px;
+  background: linear-gradient(160deg, rgba(16, 26, 42, 0.92), rgba(24, 18, 36, 0.88));
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.interior-header {
+  margin-bottom: 18px;
+}
+
+.interior-header h3 {
+  margin: 0;
+  font-size: 1.45rem;
+  color: var(--accent-gold);
+}
+
+.interior-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.interior-room {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 12%;
+  min-height: 12%;
+  border-radius: 24px;
+  border: 1.4px dashed rgba(212, 175, 55, 0.28);
+  background: rgba(12, 20, 34, 0.45);
+  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.45);
+}
+
+.interior-room span {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(232, 227, 211, 0.65);
+}
+
+.interior-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  border: 2px solid rgba(212, 175, 55, 0.45);
+  background: radial-gradient(circle at 30% 30%, rgba(212, 175, 55, 0.85), rgba(124, 111, 167, 0.45));
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.interior-marker.entry {
+  border-color: rgba(136, 232, 182, 0.65);
+  background: radial-gradient(circle at 40% 30%, rgba(136, 232, 182, 0.82), rgba(36, 56, 48, 0.6));
+}
+
+.interior-marker.npc {
+  border-color: rgba(255, 196, 228, 0.6);
+  background: radial-gradient(circle at 40% 30%, rgba(255, 196, 228, 0.9), rgba(54, 24, 48, 0.6));
+}
+
+.interior-marker:hover,
+.interior-marker:focus-visible {
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.55);
+}
+
+.interior-marker.target {
+  box-shadow: 0 0 22px rgba(212, 175, 55, 0.9);
+}
+
+.interior-marker.collected {
+  opacity: 0.55;
+}
+
+.interior-marker.new-dialogue::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 196, 228, 0.75);
+  animation: pulse-glow 2.6s ease-in-out infinite;
+}
+
+.interior-feature,
+.interior-exit {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0.32rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: rgba(12, 20, 34, 0.78);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  color: rgba(232, 227, 211, 0.75);
+  pointer-events: auto;
+  cursor: default;
+}
+
+.interior-exit {
+  background: rgba(212, 175, 55, 0.22);
+  border-color: rgba(212, 175, 55, 0.58);
+  color: var(--accent-gold);
+  font-weight: 600;
 }
 
 .map-layer-actors {
@@ -1212,6 +1377,12 @@ button:hover, .badge:hover {
   box-shadow: 0 0 8px rgba(86, 132, 210, 0.45);
 }
 
+.legend-dot.interior {
+  background: linear-gradient(180deg, rgba(136, 232, 182, 0.92), rgba(34, 64, 48, 0.7));
+  border-color: rgba(196, 255, 228, 0.85);
+  box-shadow: 0 0 10px rgba(136, 232, 182, 0.55);
+}
+
 .legend-dot.npc-new {
   background: linear-gradient(180deg, #aaf8ff, #63f0ff);
   border-color: rgba(233, 248, 255, 0.95);
@@ -1591,6 +1762,12 @@ button:hover, .badge:hover {
   border: 2px solid rgba(255, 255, 255, 0.85);
   box-shadow: 0 0 16px rgba(255, 77, 87, 0.55);
   transition: left 0.25s linear, top 0.25s linear;
+}
+
+.explorer.interior {
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.85), rgba(98, 58, 12, 0.55));
+  border-color: rgba(255, 234, 200, 0.9);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.55);
 }
 
 .observer-panel {

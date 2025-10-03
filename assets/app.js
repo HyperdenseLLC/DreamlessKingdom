@@ -17,6 +17,7 @@ const state = {
   crossReferences: null,
   entryNpcLinks: new Map(),
   buildings: [],
+  mapContext: { type: 'overworld', buildingId: null },
 };
 
 const LABEL_PLACEMENTS = new Map();
@@ -1629,6 +1630,20 @@ const BUILDINGS = [
     location: { x: 27, y: 25, region: 'Choir Ruins' },
     npcIds: ['archivist-sel'],
     wanderRadius: 4.5,
+    interior: {
+      description: 'Hushed reliquary aisles hum with suspended choir glass.',
+      entrance: { x: 52, y: 88 },
+      exit: { x: 52, y: 94 },
+      rooms: [
+        { id: 'nave', name: 'Resonance Nave', x: 18, y: 18, width: 64, height: 42 },
+        { id: 'vault', name: 'Echo Vault', x: 54, y: 58, width: 32, height: 28 },
+      ],
+      markers: [
+        { type: 'entry', entryId: 'chorus-spore-cluster', x: 42, y: 40 },
+        { type: 'npc', npcId: 'archivist-sel', x: 66, y: 46 },
+        { type: 'feature', id: 'refrain-well', label: 'Refrain Well', x: 52, y: 72 },
+      ],
+    },
   },
   {
     id: 'skywright-atelier',
@@ -1638,6 +1653,20 @@ const BUILDINGS = [
     location: { x: 19, y: 13, region: 'Skybreak Ridge' },
     npcIds: ['skywright-ila'],
     wanderRadius: 4.2,
+    interior: {
+      description: 'Open gantries suspend storm charts and tethered glidewings.',
+      entrance: { x: 48, y: 90 },
+      exit: { x: 48, y: 96 },
+      rooms: [
+        { id: 'hangar', name: 'Stormline Hangar', x: 12, y: 18, width: 70, height: 38 },
+        { id: 'loft', name: 'Charting Loft', x: 58, y: 54, width: 32, height: 26 },
+      ],
+      markers: [
+        { type: 'entry', entryId: 'starlit-bramble', x: 38, y: 40 },
+        { type: 'npc', npcId: 'skywright-ila', x: 62, y: 44 },
+        { type: 'feature', id: 'windlass', label: 'Windlass Array', x: 30, y: 66 },
+      ],
+    },
   },
   {
     id: 'emberworks-depot',
@@ -1647,6 +1676,20 @@ const BUILDINGS = [
     location: { x: 56, y: 70, region: 'Carnival Quarter Greenways' },
     npcIds: ['carnival-quartermaster'],
     wanderRadius: 5,
+    interior: {
+      description: 'Smouldering rails carry emberleaf coils between assembly pits.',
+      entrance: { x: 54, y: 88 },
+      exit: { x: 54, y: 95 },
+      rooms: [
+        { id: 'assembly', name: 'Assembly Floor', x: 16, y: 22, width: 68, height: 46 },
+        { id: 'vault', name: 'Ember Vault', x: 60, y: 62, width: 30, height: 24 },
+      ],
+      markers: [
+        { type: 'entry', entryId: 'emberleaf-vines', x: 44, y: 52 },
+        { type: 'npc', npcId: 'carnival-quartermaster', x: 66, y: 46 },
+        { type: 'feature', id: 'coil-rack', label: 'Coil Rack', x: 36, y: 70 },
+      ],
+    },
   },
   {
     id: 'tideglass-laboratory',
@@ -1656,6 +1699,20 @@ const BUILDINGS = [
     location: { x: 78, y: 42, region: 'Undersea Observatory' },
     npcIds: ['tideglass-warden'],
     wanderRadius: 4.8,
+    interior: {
+      description: 'Pressurised consoles listen for tidal resonance through tideglass panes.',
+      entrance: { x: 50, y: 86 },
+      exit: { x: 50, y: 94 },
+      rooms: [
+        { id: 'lab', name: 'Pressure Lab', x: 18, y: 22, width: 68, height: 40 },
+        { id: 'gallery', name: 'Observation Gallery', x: 60, y: 60, width: 30, height: 26 },
+      ],
+      markers: [
+        { type: 'entry', entryId: 'tidal-iris', x: 48, y: 46 },
+        { type: 'npc', npcId: 'tideglass-warden', x: 68, y: 50 },
+        { type: 'feature', id: 'listening-well', label: 'Listening Well', x: 34, y: 70 },
+      ],
+    },
   },
   {
     id: 'arboretum-hearth',
@@ -1665,6 +1722,20 @@ const BUILDINGS = [
     location: { x: 32, y: 63, region: 'Whispering Arboretum' },
     npcIds: ['hollow-gardener'],
     wanderRadius: 5.2,
+    interior: {
+      description: 'Warm-rooted terraces glow with whispered lullabies.',
+      entrance: { x: 52, y: 88 },
+      exit: { x: 52, y: 95 },
+      rooms: [
+        { id: 'atrium', name: 'Grove Atrium', x: 16, y: 20, width: 70, height: 44 },
+        { id: 'nursery', name: 'Nursery Hollow', x: 64, y: 60, width: 26, height: 26 },
+      ],
+      markers: [
+        { type: 'entry', entryId: 'glassfern-scribes', x: 36, y: 50 },
+        { type: 'npc', npcId: 'hollow-gardener', x: 68, y: 48 },
+        { type: 'feature', id: 'whisper-hearth', label: 'Whisper Hearth', x: 48, y: 72 },
+      ],
+    },
   },
   {
     id: 'forge-accord-hall',
@@ -1674,6 +1745,20 @@ const BUILDINGS = [
     location: { x: 67, y: 44, region: 'Shatterlight Forge' },
     npcIds: ['forge-liaison'],
     wanderRadius: 4.6,
+    interior: {
+      description: 'Suspended walkways overlook molten crucibles and treaty tables.',
+      entrance: { x: 46, y: 88 },
+      exit: { x: 46, y: 95 },
+      rooms: [
+        { id: 'hall', name: 'Accord Chamber', x: 18, y: 22, width: 70, height: 44 },
+        { id: 'balcony', name: 'Forge Balcony', x: 62, y: 60, width: 28, height: 26 },
+      ],
+      markers: [
+        { type: 'entry', entryId: 'shatterlight-thistle', x: 40, y: 46 },
+        { type: 'npc', npcId: 'forge-liaison', x: 66, y: 48 },
+        { type: 'feature', id: 'treaty-table', label: 'Treaty Table', x: 52, y: 70 },
+      ],
+    },
   },
 ];
 
@@ -2341,6 +2426,12 @@ function projectIsoPoint(x, y){
   };
 }
 
+function projectInteriorPoint(x = 50, y = 50){
+  const left = clampNumber(Number.isFinite(x) ? x : 50, 0, 100);
+  const top = clampNumber(Number.isFinite(y) ? y : 50, 0, 100);
+  return { left, top };
+}
+
 function projectIsoSize(width, height){
   const w = Math.max(0, Number.isFinite(width) ? width : 0);
   const hSource = Number.isFinite(height) ? height : width;
@@ -2485,6 +2576,7 @@ function ensureMapStructure(){
     arrival,
     telemetry,
   };
+  updateMapContextStyles(map._layers);
   if(state.mapCamera){
     if(typeof state.mapCamera.manual !== 'boolean'){
       state.mapCamera.manual = false;
@@ -2898,49 +2990,69 @@ function renderMapEvents(layer){
   });
 }
 
-function renderMapMarkers(){
-  const map = document.querySelector('#map');
-  if(!map) return;
-  const layers = ensureMapStructure();
-  if(!layers) return;
+function buildingHasInteriorTargets(building){
+  if(!building?.interior) return false;
+  const interior = building.interior;
+  const entryMarkers = Array.isArray(interior.markers)
+    ? interior.markers.filter(marker => marker && marker.type === 'entry')
+    : [];
+  const npcMarkers = Array.isArray(interior.markers)
+    ? interior.markers.filter(marker => marker && marker.type === 'npc')
+    : [];
+  const explorer = state.explorer;
+  const entries = entryMarkers
+    .map(marker => state.entries.find(entry => entry.id === marker.entryId))
+    .filter(Boolean);
+  const npcs = npcMarkers
+    .map(marker => state.npcs.find(npc => npc.id === marker.npcId))
+    .filter(Boolean);
+  const hasEntry = entries.some(entry => !explorer?.collected?.has(entry.id));
+  const hasNpc = npcs.some(npc => hasNewNpcDialogue(npc));
+  return hasEntry || hasNpc;
+}
+
+function renderOverworldMap(layers){
   const { zones, buildings, markers, npcs, events } = layers;
   renderMapZones(zones);
   if(Array.isArray(state.buildings)){
     state.buildings.forEach(building => { if(building) building.element = null; });
   }
   renderMapBuildings(buildings);
-  markers.innerHTML = '';
+  if(markers) markers.innerHTML = '';
   if(npcs) npcs.innerHTML = '';
   state.npcs.forEach(npc => { if(npc) npc.element = null; });
-  const filteredIds = new Set(state.filtered.map(e=>e.id));
+  const filteredIds = new Set(state.filtered.map(e => e.id));
   const dormant = state.bloomDormant instanceof Map ? state.bloomDormant : null;
-  state.entries.filter(e=>e.location).forEach(e=>{
-    if(dormant?.has(e.id)) return;
-    const marker = document.createElement('button');
-    const classes = ['marker'];
-    if(!filteredIds.has(e.id)) classes.push('dim');
-    if(state.explorer?.collected?.has(e.id)) classes.push('collected');
-    if(state.explorer?.target?.entry?.id === e.id) classes.push('target');
-    if(e.category === 'Character') classes.push('character');
-    marker.className = classes.join(' ');
-    const pos = projectIsoPoint(e.location.x, e.location.y);
-    marker.style.left = `${pos.left}%`;
-    marker.style.top = `${pos.top}%`;
-    const region = e.location.region || 'Unknown region';
-    const variant = e.variant;
-    const ariaLabel = [e.title, variant?.rarity, region].filter(Boolean).join(' — ');
-    marker.setAttribute('aria-label', ariaLabel);
-    marker.title = `${e.title}${variant?.rarity ? ` (${variant.rarity})` : ''}\n${region}`;
-    marker.innerHTML = '<span></span>';
-    marker.addEventListener('click', ()=>openModal(e));
-    markers.appendChild(marker);
-  });
-  if(npcs){
-    state.npcs.forEach(npc=>{
-      if(!npc?.location) return;
+  if(markers){
+    state.entries.filter(e => e.location).forEach(entry => {
+      if(entry.buildingId && (entry.isInteriorOnly || entry.interiorLocation)) return;
+      if(dormant?.has(entry.id)) return;
       const marker = document.createElement('button');
-      const classes = ['marker', 'character'];
-      classes.push('npc');
+      const classes = ['marker'];
+      if(!filteredIds.has(entry.id)) classes.push('dim');
+      if(state.explorer?.collected?.has(entry.id)) classes.push('collected');
+      if(state.explorer?.target?.entry?.id === entry.id) classes.push('target');
+      if(entry.category === 'Character') classes.push('character');
+      marker.className = classes.join(' ');
+      const pos = projectIsoPoint(entry.location.x, entry.location.y);
+      marker.style.left = `${pos.left}%`;
+      marker.style.top = `${pos.top}%`;
+      const region = entry.location.region || 'Unknown region';
+      const variant = entry.variant;
+      const ariaLabel = [entry.title, variant?.rarity, region].filter(Boolean).join(' — ');
+      marker.setAttribute('aria-label', ariaLabel);
+      marker.title = `${entry.title}${variant?.rarity ? ` (${variant.rarity})` : ''}\n${region}`;
+      marker.innerHTML = '<span></span>';
+      marker.addEventListener('click', ()=>openModal(entry));
+      markers.appendChild(marker);
+    });
+  }
+  if(npcs){
+    state.npcs.forEach(npc => {
+      if(!npc?.location) return;
+      if(npc.interiorOnly && !npc.worldVisible) return;
+      const marker = document.createElement('button');
+      const classes = ['marker', 'character', 'npc'];
       const hasNewDialogue = hasNewNpcDialogue(npc);
       if(hasNewDialogue) classes.push('new-dialogue');
       if(state.explorer?.target?.type === 'npc' && state.explorer?.target?.npc?.id === npc.id){
@@ -2958,16 +3070,168 @@ function renderMapMarkers(){
       npc.element = marker;
     });
   }
-  if(state.explorer){
-    renderExplorerElement();
-  } else {
-    layers.actors.innerHTML = '';
-  }
   if(events){
     renderMapEvents(events);
   }
+  if(layers.detail){
+    layers.detail.hidden = true;
+    layers.detail.innerHTML = '';
+  }
+}
+
+function renderBuildingInteriorMap(layers, building){
+  const interior = building?.interior || {};
+  const { zones, buildings, markers, npcs, events, detail } = layers;
+  if(Array.isArray(state.buildings)){
+    state.buildings.forEach(item => { if(item) item.element = null; });
+  }
+  if(zones) zones.innerHTML = '';
+  if(buildings) buildings.innerHTML = '';
+  if(markers) markers.innerHTML = '';
+  if(npcs) npcs.innerHTML = '';
+  if(events) events.innerHTML = '';
+  state.npcs.forEach(npc => { if(npc) npc.element = null; });
+  if(layers.path?.line){
+    layers.path.line.setAttribute('points', '');
+    layers.path.line.classList.remove('active');
+  }
+  if(zones){
+    const layout = document.createElement('div');
+    layout.className = 'interior-layout';
+    if(interior.description || building?.name){
+      const header = document.createElement('div');
+      header.className = 'interior-header';
+      header.innerHTML = `
+        <h3>${building?.name || 'Interior'}</h3>
+        ${building?.role ? `<p class="small">${building.role}</p>` : ''}
+        ${interior.description ? `<p>${interior.description}</p>` : ''}
+      `;
+      layout.appendChild(header);
+    }
+    if(Array.isArray(interior.rooms)){
+      interior.rooms.forEach(room => {
+        if(!room) return;
+        const roomEl = document.createElement('div');
+        roomEl.className = 'interior-room';
+        const pos = projectInteriorPoint(room.x, room.y);
+        roomEl.style.left = `${pos.left}%`;
+        roomEl.style.top = `${pos.top}%`;
+        const width = clampNumber(Number(room.width) || 28, 8, 92);
+        const height = clampNumber(Number(room.height) || 22, 8, 92);
+        roomEl.style.width = `${width}%`;
+        roomEl.style.height = `${height}%`;
+        if(room.name){
+          const label = document.createElement('span');
+          label.textContent = room.name;
+          roomEl.appendChild(label);
+        }
+        layout.appendChild(roomEl);
+      });
+    }
+    zones.appendChild(layout);
+  }
+  if(Array.isArray(interior.markers) && markers){
+    interior.markers.forEach(marker => {
+      if(!marker) return;
+      if(marker.type === 'entry'){
+        const entry = state.entries.find(e => e.id === marker.entryId);
+        if(!entry) return;
+        const button = document.createElement('button');
+        const classes = ['marker', 'interior-marker', 'entry'];
+        if(state.explorer?.collected?.has(entry.id)) classes.push('collected');
+        if(state.explorer?.target?.entry?.id === entry.id) classes.push('target');
+        button.className = classes.join(' ');
+        const pos = projectInteriorPoint(marker.x, marker.y);
+        button.style.left = `${pos.left}%`;
+        button.style.top = `${pos.top}%`;
+        button.setAttribute('aria-label', `${entry.title} — interior specimen`);
+        button.title = entry.title;
+        button.innerHTML = '<span></span>';
+        button.addEventListener('click', ()=>openModal(entry));
+        markers.appendChild(button);
+      } else if(marker.type === 'npc'){
+        const npc = state.npcs.find(n => n.id === marker.npcId);
+        if(!npc || !npcs) return;
+        const button = document.createElement('button');
+        const classes = ['marker', 'interior-marker', 'npc', 'character'];
+        if(hasNewNpcDialogue(npc)) classes.push('new-dialogue');
+        if(state.explorer?.target?.npc?.id === npc.id) classes.push('target');
+        button.className = classes.join(' ');
+        const pos = projectInteriorPoint(marker.x, marker.y);
+        button.style.left = `${pos.left}%`;
+        button.style.top = `${pos.top}%`;
+        button.setAttribute('aria-label', `${npc.name} — ${npc.title || 'Contact'}`);
+        button.title = `${npc.name}\n${npc.title || ''}`;
+        button.innerHTML = '<span></span>';
+        button.addEventListener('click', ()=>openNpcModal(npc));
+        npcs.appendChild(button);
+        npc.element = button;
+      } else if(marker.type === 'feature'){
+        const feature = document.createElement('div');
+        feature.className = 'interior-feature';
+        const pos = projectInteriorPoint(marker.x, marker.y);
+        feature.style.left = `${pos.left}%`;
+        feature.style.top = `${pos.top}%`;
+        feature.innerHTML = `<span>${marker.label || 'Feature'}</span>`;
+        if(marker.description){
+          feature.title = marker.description;
+        }
+        markers.appendChild(feature);
+      }
+    });
+  }
+  if(interior.exit && markers){
+    const exit = document.createElement('div');
+    exit.className = 'interior-exit';
+    const pos = projectInteriorPoint(interior.exit.x, interior.exit.y);
+    exit.style.left = `${pos.left}%`;
+    exit.style.top = `${pos.top}%`;
+    exit.innerHTML = '<span>Exit</span>';
+    markers.appendChild(exit);
+  }
+  if(detail){
+    detail.hidden = false;
+    const occupantIds = Array.isArray(building?.npcIds) ? building.npcIds : [];
+    const occupants = occupantIds
+      .map(id => state.npcs.find(npc => npc.id === id))
+      .filter(Boolean);
+    const interiorEntries = Array.isArray(interior.markers)
+      ? interior.markers
+        .filter(marker => marker.type === 'entry')
+        .map(marker => state.entries.find(entry => entry.id === marker.entryId))
+        .filter(Boolean)
+      : [];
+    detail.innerHTML = `
+      <h3>${building?.name || 'Interior'}</h3>
+      ${building?.role ? `<h4>${building.role}</h4>` : ''}
+      ${interior.description ? `<p>${interior.description}</p>` : ''}
+      ${occupants.length ? `<p class="small">Contacts: ${formatList(occupants.map(npc => npc.name).filter(Boolean))}</p>` : ''}
+      ${interiorEntries.length ? `<p class="small">Specimens: ${formatList(interiorEntries.map(entry => entry.title).filter(Boolean))}</p>` : ''}
+    `;
+  }
+}
+
+function renderMapMarkers(){
+  const map = document.querySelector('#map');
+  if(!map) return;
+  const layers = ensureMapStructure();
+  if(!layers) return;
+  updateMapContextStyles(layers);
+  const context = getMapContext();
+  if(context.type === 'building' && context.building){
+    renderBuildingInteriorMap(layers, context.building);
+  } else {
+    renderOverworldMap(layers);
+  }
+  if(state.explorer){
+    renderExplorerElement();
+  } else if(layers.actors){
+    layers.actors.innerHTML = '';
+  }
   updateExplorerTrail();
-  requestAnimationFrame(resolveMapLabelCollisions);
+  if(getMapContext().type !== 'building'){
+    requestAnimationFrame(resolveMapLabelCollisions);
+  }
 }
 
 function getBuildingGlyph(building){
@@ -2991,6 +3255,16 @@ function renderMapBuildings(layer){
     const button = document.createElement('button');
     button.type = 'button';
     const classes = ['marker', 'building'];
+    const context = getMapContext();
+    if(context.type === 'building' && context.buildingId === building.id){
+      classes.push('active');
+    }
+    if(building?.interior){
+      classes.push('has-interior');
+      if(buildingHasInteriorTargets(building)){
+        classes.push('has-targets');
+      }
+    }
     button.className = classes.join(' ');
     const pos = projectIsoPoint(x, y);
     button.style.left = `${pos.left}%`;
@@ -3024,6 +3298,74 @@ function renderMapBuildings(layer){
     building.element = button;
   });
   layer.appendChild(frag);
+}
+
+function getBuildingById(id){
+  if(!id) return null;
+  const buildings = Array.isArray(state.buildings) ? state.buildings : [];
+  return buildings.find(building => building?.id === id) || null;
+}
+
+function getMapContext(){
+  const context = state.mapContext;
+  if(!context){
+    return { type: 'overworld', buildingId: null, building: null };
+  }
+  if(context.type === 'building'){
+    const building = context.building || getBuildingById(context.buildingId);
+    return {
+      type: 'building',
+      buildingId: building?.id || context.buildingId || null,
+      building: building || null,
+    };
+  }
+  return { type: 'overworld', buildingId: null, building: null };
+}
+
+function updateMapContextStyles(layers){
+  const map = document.querySelector('#map');
+  if(!map || !layers?.world) return;
+  const context = getMapContext();
+  const world = layers.world;
+  map.classList.toggle('map--interior', context.type === 'building');
+  if(context.type === 'building'){
+    world.style.setProperty('--map-world-size', '100%');
+    world.style.setProperty('--map-offset-x', '0px');
+    world.style.setProperty('--map-offset-y', '0px');
+  } else {
+    world.style.setProperty('--map-world-size', `${(MAP_WORLD_SCALE * 100).toFixed(0)}%`);
+  }
+}
+
+function announceBuildingEntry(building){
+  if(!building) return;
+  const subtitleParts = [];
+  if(building.role) subtitleParts.push(building.role);
+  if(building.location?.region) subtitleParts.push(building.location.region);
+  const subtitle = subtitleParts.length ? subtitleParts.join(' • ') : '';
+  const content = `
+    <strong>${building.name}</strong>
+    ${subtitle ? `<span>${subtitle}</span>` : ''}
+  `;
+  showMapToast(content, `building:${building.id}`);
+}
+
+function setMapContext(nextContext){
+  const layers = ensureMapStructure();
+  if(nextContext?.type === 'building' && nextContext.building){
+    const building = getBuildingById(nextContext.building.id) || nextContext.building;
+    state.mapContext = {
+      type: 'building',
+      buildingId: building?.id || null,
+      building: building || null,
+    };
+    updateMapContextStyles(layers);
+    announceBuildingEntry(building);
+  } else {
+    state.mapContext = { type: 'overworld', buildingId: null, building: null };
+    updateMapContextStyles(layers);
+    showMapToast('', '');
+  }
 }
 
 function spawnMapEvent(event, options = {}){
@@ -3158,6 +3500,7 @@ function updateActiveEvents(dt){
 }
 
 function resolveMapLabelCollisions(){
+  if(getMapContext().type === 'building') return;
   const layers = ensureMapStructure();
   if(!layers) return;
   const zones = Array.from(layers.zones?.querySelectorAll('.map-zone') || []);
@@ -3562,6 +3905,7 @@ async function main(){
     location: building.location ? { ...building.location } : null,
     element: null,
   }));
+  state.mapContext = { type: 'overworld', buildingId: null, building: null };
   const buildingIndex = new Map(state.buildings.map(building => [building.id, building]));
   state.npcs = NPCS.map(npc => {
     const assignedBuilding = npc.buildingId ? buildingIndex.get(npc.buildingId) : null;
@@ -3595,6 +3939,7 @@ async function main(){
       element: null,
     };
   });
+  prepareBuildingInteriors();
   state.entryNpcLinks = buildEntryNpcLinks(state.npcs);
   state.variantCycle = applyVariantProfiles(state.entries);
   state.crossReferences = buildCrossReferenceIndex(state.entries);
@@ -3646,15 +3991,30 @@ function renderExplorerElement(){
   if(!state.explorer) return;
   const el = ensureExplorerElement();
   if(!el) return;
-  const pos = projectIsoPoint(state.explorer.x, state.explorer.y);
-  el.style.left = `${pos.left}%`;
-  el.style.top = `${pos.top}%`;
+  const context = getMapContext();
+  if(context.type === 'building'){
+    const pos = projectInteriorPoint(state.explorer.x, state.explorer.y);
+    el.classList.add('interior');
+    el.style.left = `${pos.left}%`;
+    el.style.top = `${pos.top}%`;
+  } else {
+    const pos = projectIsoPoint(state.explorer.x, state.explorer.y);
+    el.classList.remove('interior');
+    el.style.left = `${pos.left}%`;
+    el.style.top = `${pos.top}%`;
+  }
   updateMapCamera();
 }
 
 function updateMapCamera({ immediate = false, force = false, targetOffsets = null } = {}){
   const layers = ensureMapStructure();
   if(!layers?.viewport || !layers?.world) return;
+  const context = getMapContext();
+  if(context.type === 'building'){
+    layers.world.style.setProperty('--map-offset-x', '0px');
+    layers.world.style.setProperty('--map-offset-y', '0px');
+    return;
+  }
   const viewport = layers.viewport;
   const world = layers.world;
   const viewportWidth = viewport.clientWidth;
@@ -3717,6 +4077,12 @@ function updateExplorerTrail(){
   const svg = layers.path?.svg;
   const line = layers.path?.line;
   if(!svg || !line) return;
+  if(getMapContext().type === 'building'){
+    line.setAttribute('points', '');
+    line.classList.remove('active');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    return;
+  }
   const path = state.explorer?.path || [];
   if(!path.length){
     line.setAttribute('points', '');
@@ -3764,7 +4130,7 @@ function chooseNpcWanderTarget(npc){
 function updateNpcWandering(dt){
   if(!Array.isArray(state.npcs) || !state.npcs.length) return;
   state.npcs.forEach(npc => {
-    if(!npc || !npc.location) return;
+    if(!npc || npc.interiorOnly || !npc.location) return;
     if(typeof npc.wanderPause !== 'number'){
       npc.wanderPause = Math.random() * 5;
     }
@@ -3905,6 +4271,35 @@ function renderMapTelemetry(){
   const layers = ensureMapStructure();
   if(!layers?.telemetry) return;
   const el = layers.telemetry;
+  const context = getMapContext();
+  if(context.type === 'building' && context.building){
+    const building = context.building;
+    const interior = building.interior || {};
+    const entryMarkers = Array.isArray(interior.markers)
+      ? interior.markers.filter(marker => marker && marker.type === 'entry')
+      : [];
+    const npcMarkers = Array.isArray(interior.markers)
+      ? interior.markers.filter(marker => marker && marker.type === 'npc')
+      : [];
+    const remainingEntries = entryMarkers
+      .map(marker => state.entries.find(entry => entry.id === marker.entryId))
+      .filter(entry => entry && !state.explorer?.collected?.has(entry.id));
+    const availableContacts = npcMarkers
+      .map(marker => state.npcs.find(npc => npc.id === marker.npcId))
+      .filter(npc => npc && hasNewNpcDialogue(npc));
+    el.classList.remove('muted');
+    el.innerHTML = `
+      <div class="telemetry-grid interior">
+        <div class="telemetry-pair"><span>Interior</span><strong>${building.name}</strong></div>
+        ${building.role ? `<div class="telemetry-pair"><span>Role</span><strong>${building.role}</strong></div>` : ''}
+        ${building.location?.region ? `<div class="telemetry-pair"><span>Region</span><strong>${building.location.region}</strong></div>` : ''}
+        <div class="telemetry-pair"><span>Specimens</span><strong>${remainingEntries.length}</strong></div>
+        <div class="telemetry-pair"><span>Contacts</span><strong>${availableContacts.length}</strong></div>
+      </div>
+      ${interior.description ? `<div class="telemetry-note">${interior.description}</div>` : ''}
+    `;
+    return;
+  }
   const ex = state.explorer;
   if(!ex){
     el.textContent = 'Telemetry calibrating…';
@@ -3954,6 +4349,7 @@ function renderMapTelemetry(){
 function recordExplorerPosition(force = false){
   const ex = state.explorer;
   if(!ex) return;
+  if(ex.mode === 'interior') return;
   if(!Array.isArray(ex.path)) ex.path = [];
   const last = ex.path[ex.path.length - 1];
   const delta = last ? Math.hypot(ex.x - last.x, ex.y - last.y) : Infinity;
@@ -4130,8 +4526,48 @@ function renderExplorerStatus(){
   const el = document.querySelector('#explorer-status');
   if(!el || !state.explorer) return;
   const ex = state.explorer;
+  const context = getMapContext();
+  const activeBuilding = ex.mode === 'interior'
+    ? (getBuildingById(ex.buildingId) || context.building)
+    : null;
   let text = 'Surveyor calibrating instruments…';
-  if(ex.phase === 'travel' && ex.target){
+  if(activeBuilding){
+    const buildingName = activeBuilding.name || 'the interior';
+    if(ex.phase === 'travel' && ex.target){
+      if(ex.target.type === 'npc' && ex.target.npc){
+        const npc = ex.target.npc;
+        const hasNew = hasNewNpcDialogue(npc);
+        const detail = hasNew ? ' — new exchange' : '';
+        text = `Crossing ${buildingName} to reach ${npc.name}${detail}`;
+      } else if(ex.target.type === 'entry' && ex.target.entry){
+        const entry = ex.target.entry;
+        text = `Navigating ${buildingName} toward ${entry.title}`;
+      } else if(ex.target.type === 'exit'){
+        text = `Preparing to leave ${buildingName}`;
+      } else {
+        text = `Exploring ${buildingName}`;
+      }
+    } else if(ex.phase === 'collecting'){
+      const remaining = Math.max(0, ex.pauseTimer || 0);
+      const suffix = remaining > 0 ? ` (${Math.ceil(remaining)}s)` : '';
+      const variant = ex.lastCollectedVariant;
+      const detailParts = [];
+      if(variant?.rarity) detailParts.push(variant.rarity);
+      if(variant?.condition) detailParts.push(variant.condition);
+      const detail = detailParts.length ? ` — ${detailParts.join(' • ')}` : '';
+      text = `Cataloguing ${ex.lastCollectedTitle}${detail} inside ${buildingName}${suffix}`;
+    } else if(ex.phase === 'conversing'){
+      const remaining = Math.max(0, ex.pauseTimer || 0);
+      const suffix = remaining > 0 ? ` (${Math.ceil(remaining)}s)` : '';
+      const npc = ex.currentNpc;
+      const dialogueTitle = ex.currentDialogue?.title ? ` — ${ex.currentDialogue.title}` : '';
+      text = npc
+        ? `Trading notes with ${npc.name}${dialogueTitle} in ${buildingName}${suffix}`
+        : `Trading notes in ${buildingName}${suffix}`;
+    } else if(ex.phase === 'idle'){
+      text = `Surveyor exploring ${buildingName}`;
+    }
+  } else if(ex.phase === 'travel' && ex.target){
     if(ex.target.type === 'npc' && ex.target.npc){
       const npc = ex.target.npc;
       const region = npc.location?.region || 'Unknown region';
@@ -4630,6 +5066,10 @@ function clearSceneEvent(){
 function pickExplorerTarget(){
   const ex = state.explorer;
   if(!ex) return;
+  if(ex.mode === 'interior'){
+    pickInteriorTarget();
+    return;
+  }
   const entryCandidates = state.entries.filter(e=>e.location);
   const npcCandidates = Array.isArray(state.npcs) ? state.npcs.filter(n=>n.location) : [];
   const unvisitedEntries = entryCandidates.filter(e=>!ex.collected.has(e.id));
@@ -4667,6 +5107,17 @@ function pickExplorerTarget(){
       }
     }
     if(nextTarget){
+      if(nextTarget.type === 'entry' && nextTarget.entry?.buildingId){
+        const building = getBuildingById(nextTarget.entry.buildingId);
+        if(building){
+          nextTarget = { type: 'building', building, entry: nextTarget.entry };
+        }
+      } else if(nextTarget.type === 'npc' && nextTarget.npc?.interiorOnly){
+        const building = getBuildingById(nextTarget.npc.buildingId);
+        if(building){
+          nextTarget = { type: 'building', building, npc: nextTarget.npc };
+        }
+      }
       ex.target = nextTarget;
       ex.phase = 'travel';
       renderExplorerStatus();
@@ -4692,6 +5143,17 @@ function pickExplorerTarget(){
   }
 
   if(nextTarget){
+    if(nextTarget.type === 'entry' && nextTarget.entry?.buildingId){
+      const building = getBuildingById(nextTarget.entry.buildingId);
+      if(building){
+        nextTarget = { type: 'building', building, entry: nextTarget.entry };
+      }
+    } else if(nextTarget.type === 'npc' && nextTarget.npc?.interiorOnly){
+      const building = getBuildingById(nextTarget.npc.buildingId);
+      if(building){
+        nextTarget = { type: 'building', building, npc: nextTarget.npc };
+      }
+    }
     ex.target = nextTarget;
     ex.phase = 'travel';
   } else {
@@ -4700,6 +5162,162 @@ function pickExplorerTarget(){
   }
   renderExplorerStatus();
   renderMapMarkers();
+}
+
+function pickInteriorTarget(){
+  const ex = state.explorer;
+  if(!ex) return;
+  const building = getBuildingById(ex.buildingId);
+  if(!building){
+    leaveBuilding();
+    return;
+  }
+  const interior = building.interior || {};
+  const entryMarkers = Array.isArray(interior.markers)
+    ? interior.markers.filter(marker => marker && marker.type === 'entry')
+    : [];
+  const npcMarkers = Array.isArray(interior.markers)
+    ? interior.markers.filter(marker => marker && marker.type === 'npc')
+    : [];
+  const entryPool = entryMarkers
+    .map(marker => state.entries.find(entry => entry.id === marker.entryId))
+    .filter(entry => entry && !ex.collected.has(entry.id));
+  const npcPool = npcMarkers
+    .map(marker => state.npcs.find(npc => npc.id === marker.npcId))
+    .filter(npc => npc && hasNewNpcDialogue(npc));
+  let nextTarget = null;
+  if(ex.pendingInteriorTarget){
+    if(ex.pendingInteriorTargetType === 'entry' && entryPool.includes(ex.pendingInteriorTarget)){
+      nextTarget = { type: 'entry', entry: ex.pendingInteriorTarget };
+    } else if(ex.pendingInteriorTargetType === 'npc' && npcPool.includes(ex.pendingInteriorTarget)){
+      nextTarget = { type: 'npc', npc: ex.pendingInteriorTarget };
+    }
+    ex.pendingInteriorTarget = null;
+    ex.pendingInteriorTargetType = null;
+  }
+  if(!nextTarget){
+    if(npcPool.length){
+      const npc = npcPool[Math.floor(Math.random() * npcPool.length)];
+      nextTarget = { type: 'npc', npc };
+    } else if(entryPool.length){
+      const entry = entryPool[Math.floor(Math.random() * entryPool.length)];
+      nextTarget = { type: 'entry', entry };
+    } else {
+      nextTarget = { type: 'exit', building };
+    }
+  }
+  ex.target = nextTarget;
+  ex.phase = 'travel';
+  renderExplorerStatus();
+  renderMapMarkers();
+}
+
+function enterBuilding(building, options = {}){
+  const ex = state.explorer;
+  if(!ex || !building) return;
+  recordExplorerPosition(true);
+  ex.mode = 'interior';
+  ex.buildingId = building.id || null;
+  ex.worldPosition = { x: ex.x, y: ex.y };
+  ex.target = null;
+  ex.phase = 'travel';
+  const interior = building.interior || {};
+  const entrance = interior.entrance || { x: 50, y: 88 };
+  ex.x = clampNumber(Number(entrance.x) || 50, 0, 100);
+  ex.y = clampNumber(Number(entrance.y) || 88, 0, 100);
+  ex.pendingInteriorTarget = null;
+  ex.pendingInteriorTargetType = null;
+  if(options.entry){
+    ex.pendingInteriorTarget = options.entry;
+    ex.pendingInteriorTargetType = 'entry';
+  } else if(options.npc){
+    ex.pendingInteriorTarget = options.npc;
+    ex.pendingInteriorTargetType = 'npc';
+  }
+  setMapContext({ type: 'building', building });
+  renderMapTelemetry();
+  pickInteriorTarget();
+}
+
+function leaveBuilding(building = null){
+  const ex = state.explorer;
+  if(!ex) return;
+  const activeBuilding = building || getBuildingById(ex.buildingId);
+  const origin = ex.worldPosition || activeBuilding?.location || { x: ex.x, y: ex.y };
+  ex.mode = 'overworld';
+  ex.buildingId = null;
+  ex.worldPosition = null;
+  ex.pendingInteriorTarget = null;
+  ex.pendingInteriorTargetType = null;
+  ex.target = null;
+  ex.phase = 'idle';
+  ex.x = clampNumber(origin.x ?? 50, 0, 100);
+  ex.y = clampNumber(origin.y ?? 50, 0, 100);
+  setMapContext({ type: 'overworld' });
+  recordExplorerPosition(true);
+  const zone = findZoneForCoordinate(ex.x, ex.y);
+  if(zone){
+    announceZoneArrival(zone);
+  } else {
+    announceZoneArrival(null);
+  }
+  renderExplorerUI();
+  renderMapTelemetry();
+  pickExplorerTarget();
+}
+
+function prepareBuildingInteriors(){
+  const buildings = Array.isArray(state.buildings) ? state.buildings : [];
+  const entriesById = new Map(state.entries.map(entry => [entry.id, entry]));
+  const npcsById = new Map(state.npcs.map(npc => [npc.id, npc]));
+  buildings.forEach(building => {
+    if(!building || !building.interior) return;
+    const interior = building.interior;
+    if(!Array.isArray(interior.markers)) interior.markers = [];
+    if(!interior.entrance){
+      interior.entrance = { x: 50, y: 88 };
+    }
+    if(!interior.exit){
+      interior.exit = { ...interior.entrance };
+    }
+    interior.entryIds = [];
+    interior.npcInteriorIds = [];
+    interior.markers.forEach(marker => {
+      if(!marker) return;
+      if(marker.type === 'entry'){
+        const entry = entriesById.get(marker.entryId);
+        if(!entry) return;
+        interior.entryIds.push(entry.id);
+        entry.buildingId = entry.buildingId || building.id;
+        entry.interiorLocation = {
+          x: clampNumber(Number(marker.x) || 50, 0, 100),
+          y: clampNumber(Number(marker.y) || 50, 0, 100),
+          roomId: marker.roomId || null,
+        };
+        entry.isInteriorOnly = true;
+        if(!entry.location && building.location){
+          entry.location = { ...building.location };
+        } else if(building.location?.region && entry.location && !entry.location.region){
+          entry.location = { ...entry.location, region: building.location.region };
+        }
+      } else if(marker.type === 'npc'){
+        const npc = npcsById.get(marker.npcId);
+        if(!npc) return;
+        interior.npcInteriorIds.push(npc.id);
+        npc.buildingId = npc.buildingId || building.id;
+        npc.interiorLocation = {
+          x: clampNumber(Number(marker.x) || 50, 0, 100),
+          y: clampNumber(Number(marker.y) || 50, 0, 100),
+          roomId: marker.roomId || null,
+        };
+        npc.interiorOnly = marker.interiorOnly !== false;
+        npc.worldVisible = marker.interiorOnly === false;
+        if(!npc.location && building.location){
+          npc.location = { ...building.location };
+        }
+      }
+    });
+  });
 }
 
 function handleExplorerCollect(entry){
@@ -4774,7 +5392,7 @@ function handleExplorerNpc(npc){
   ex.target = null;
   if(ex.routeCollected) ex.routeCollected.clear();
   if(Array.isArray(ex.routeSequence)) ex.routeSequence.length = 0;
-  if(npc){
+  if(npc && !npc.interiorOnly && npc.location){
     npc.wanderPause = Math.max(npc.wanderPause || 0, duration + 1.5);
     npc.wanderTarget = { x: npc.location.x, y: npc.location.y };
   }
@@ -4796,6 +5414,130 @@ function handleExplorerNpc(npc){
     });
   }
   renderExplorerUI();
+}
+
+function handleOverworldTraversal(dt){
+  const ex = state.explorer;
+  if(!ex) return;
+  if(!ex.target){
+    pickExplorerTarget();
+    return;
+  }
+  const target = ex.target;
+  let destination = null;
+  if(target.type === 'building' && target.building){
+    destination = target.building.location || null;
+  } else if(target.type === 'entry' && target.entry){
+    if(target.entry.buildingId && (target.entry.isInteriorOnly || target.entry.interiorLocation)){
+      const building = getBuildingById(target.entry.buildingId);
+      if(building){
+        ex.target = { type: 'building', building, entry: target.entry };
+        renderExplorerStatus();
+        renderMapMarkers();
+        return;
+      }
+    }
+    destination = target.entry.location || null;
+  } else if(target.type === 'npc' && target.npc){
+    if(target.npc.interiorOnly){
+      const building = getBuildingById(target.npc.buildingId);
+      if(building){
+        ex.target = { type: 'building', building, npc: target.npc };
+        renderExplorerStatus();
+        renderMapMarkers();
+        return;
+      }
+    }
+    destination = target.npc.location || null;
+  }
+  if(!destination){
+    ex.target = null;
+    ex.phase = 'idle';
+    renderExplorerStatus();
+    return;
+  }
+  const tx = destination.x;
+  const ty = destination.y;
+  const dx = tx - ex.x;
+  const dy = ty - ex.y;
+  const dist = Math.hypot(dx, dy);
+  if(dist < 0.4){
+    ex.x = tx;
+    ex.y = ty;
+    if(target.type === 'entry' && target.entry){
+      handleExplorerCollect(target.entry);
+    } else if(target.type === 'npc' && target.npc){
+      handleExplorerNpc(target.npc);
+    } else if(target.type === 'building' && target.building){
+      enterBuilding(target.building, { entry: target.entry, npc: target.npc });
+    }
+  } else if(dist > 0){
+    const move = ex.speed * dt;
+    if(move >= dist){
+      ex.x = tx;
+      ex.y = ty;
+    } else {
+      ex.x += (dx / dist) * move;
+      ex.y += (dy / dist) * move;
+    }
+  }
+}
+
+function handleInteriorTraversal(dt){
+  const ex = state.explorer;
+  if(!ex) return;
+  const building = getBuildingById(ex.buildingId);
+  if(!building){
+    leaveBuilding();
+    return;
+  }
+  if(!ex.target){
+    pickInteriorTarget();
+    return;
+  }
+  const interior = building.interior || {};
+  const target = ex.target;
+  let destination = null;
+  if(target.type === 'entry' && target.entry){
+    destination = target.entry.interiorLocation || null;
+  } else if(target.type === 'npc' && target.npc){
+    destination = target.npc.interiorLocation || null;
+  } else if(target.type === 'exit'){
+    destination = interior.exit || interior.entrance || { x: 50, y: 88 };
+  } else if(target.type === 'building' && target.building){
+    destination = interior.exit || interior.entrance || { x: 50, y: 88 };
+  }
+  if(!destination){
+    if(target.type !== 'exit'){
+      ex.target = { type: 'exit', building };
+      renderExplorerStatus();
+    } else {
+      leaveBuilding(building);
+    }
+    return;
+  }
+  const tx = clampNumber(Number(destination.x) || ex.x, 0, 100);
+  const ty = clampNumber(Number(destination.y) || ex.y, 0, 100);
+  const dx = tx - ex.x;
+  const dy = ty - ex.y;
+  const dist = Math.hypot(dx, dy);
+  const move = ex.speed * dt * 2.1;
+  const threshold = 1.8;
+  if(dist < threshold){
+    ex.x = tx;
+    ex.y = ty;
+    if(target.type === 'entry' && target.entry){
+      handleExplorerCollect(target.entry);
+    } else if(target.type === 'npc' && target.npc){
+      handleExplorerNpc(target.npc);
+    } else if(target.type === 'exit' || target.type === 'building'){
+      leaveBuilding(building);
+    }
+  } else if(move > 0 && dist > 0){
+    const step = Math.min(dist, move);
+    ex.x += (dx / dist) * step;
+    ex.y += (dy / dist) * step;
+  }
 }
 
 function explorerStep(ts){
@@ -4846,36 +5588,10 @@ function explorerStep(ts){
       pickExplorerTarget();
     }
   } else {
-    if(!ex.target){
-      pickExplorerTarget();
-    }
-    const targetEntry = ex.target?.entry;
-    const targetNpc = ex.target?.npc;
-    const destination = targetEntry?.location || targetNpc?.location;
-    if(destination){
-      const tx = destination.x;
-      const ty = destination.y;
-      const dx = tx - ex.x;
-      const dy = ty - ex.y;
-      const dist = Math.hypot(dx, dy);
-      if(dist < 0.4){
-        ex.x = tx;
-        ex.y = ty;
-        if(targetEntry){
-          handleExplorerCollect(targetEntry);
-        } else if(targetNpc){
-          handleExplorerNpc(targetNpc);
-        }
-      } else if(dist > 0){
-        const move = ex.speed * dt;
-        if(move >= dist){
-          ex.x = tx;
-          ex.y = ty;
-        } else {
-          ex.x += (dx / dist) * move;
-          ex.y += (dy / dist) * move;
-        }
-      }
+    if(ex.mode === 'interior'){
+      handleInteriorTraversal(dt);
+    } else {
+      handleOverworldTraversal(dt);
     }
   }
 
@@ -4895,6 +5611,8 @@ function initExplorer(){
   state.explorer = {
     x: 50,
     y: 50,
+    mode: 'overworld',
+    buildingId: null,
     baseSpeed: 1.6,
     speed: 1.6,
     collected: new Set(),
@@ -4923,6 +5641,9 @@ function initExplorer(){
     telemetryTimer: 0,
     pendingRedirect: null,
     currentZoneName: null,
+    worldPosition: null,
+    pendingInteriorTarget: null,
+    pendingInteriorTargetType: null,
   };
   ensureExplorerMood(state.explorer);
   ensureExplorerElement();

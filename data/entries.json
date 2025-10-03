@@ -25,7 +25,9 @@
       "summary": "Fungal blooms that echo hymn fragments from the sunken Choir. Harvesters wear masks to avoid singing along forever.",
       "tag": "Fungal",
       "category": "Plant",
-      "location": { "x": 34, "y": 22, "region": "Choir Ruins" }
+      "location": { "x": 34, "y": 22, "region": "Choir Ruins" },
+      "buildingId": "choir-reliquary",
+      "interior": { "x": 42, "y": 40 }
     },
     {
       "id": "glassfern-scribes",
@@ -33,7 +35,9 @@
       "summary": "Fronds as clear as vellum that capture whispered secrets in refracted light. Archivists trade entire libraries for one spool.",
       "tag": "Arcane",
       "category": "Plant",
-      "location": { "x": 18, "y": 36, "region": "Whispering Arboretum" }
+      "location": { "x": 18, "y": 36, "region": "Whispering Arboretum" },
+      "buildingId": "arboretum-hearth",
+      "interior": { "x": 36, "y": 50 }
     },
     {
       "id": "moonlace-bloom",
@@ -49,7 +53,9 @@
       "summary": "Slow-burning creepers woven through festival floats. When braided correctly they warm whole caravans without smoke.",
       "tag": "Utility",
       "category": "Plant",
-      "location": { "x": 52, "y": 68, "region": "Carnival Quarter Greenways" }
+      "location": { "x": 52, "y": 68, "region": "Carnival Quarter Greenways" },
+      "buildingId": "emberworks-depot",
+      "interior": { "x": 44, "y": 52 }
     },
     {
       "id": "tidal-iris",
@@ -57,7 +63,9 @@
       "summary": "Bioluminescent petals that sway in rhythm with the underground sea. Sailors wear them to sense incoming reverse currents.",
       "tag": "Navigation",
       "category": "Plant",
-      "location": { "x": 76, "y": 40, "region": "Undersea Observatory" }
+      "location": { "x": 76, "y": 40, "region": "Undersea Observatory" },
+      "buildingId": "tideglass-laboratory",
+      "interior": { "x": 48, "y": 46 }
     },
     {
       "id": "starlit-bramble",
@@ -65,7 +73,9 @@
       "summary": "Thorny coils that drink meteor light and release it in gentle pulses. Sky shepherds knot them into lantern crowns.",
       "tag": "Luminescent",
       "category": "Plant",
-      "location": { "x": 12, "y": 18, "region": "Skybreak Ridge" }
+      "location": { "x": 12, "y": 18, "region": "Skybreak Ridge" },
+      "buildingId": "skywright-atelier",
+      "interior": { "x": 38, "y": 40 }
     },
     {
       "id": "whisper-willow",
@@ -145,7 +155,9 @@
       "summary": "Prismatic spines that refract forge embers into calibrating beams. Artificers of the Shatterlight Forge use them to temper dreaming steel.",
       "tag": "Artifice",
       "category": "Plant",
-      "location": { "x": 58, "y": 18, "region": "Shatterlight Forge" }
+      "location": { "x": 58, "y": 18, "region": "Shatterlight Forge" },
+      "buildingId": "forge-accord-hall",
+      "interior": { "x": 40, "y": 46 }
     }
     ,
     {
